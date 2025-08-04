@@ -18,11 +18,19 @@ const DietPlans = () => {
   // Get clientId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const selectedClientId = urlParams.get('clientId');
+  const showModal = urlParams.get('showModal');
 
   useEffect(() => {
     fetchDietPlans();
     fetchClients();
   }, []);
+
+  // Auto-open modal if clientId is provided in URL or showModal is true
+  useEffect(() => {
+    if (selectedClientId || showModal === 'true') {
+      setShowCreateModal(true);
+    }
+  }, [selectedClientId, showModal]);
 
   const fetchDietPlans = async () => {
     try {
