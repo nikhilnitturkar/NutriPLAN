@@ -1,8 +1,19 @@
 # Use Node.js 18 Alpine as base image
 FROM node:18-alpine
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install curl and Chrome dependencies for Puppeteer
+RUN apk add --no-cache curl \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Set Puppeteer to use installed Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Set working directory
 WORKDIR /app

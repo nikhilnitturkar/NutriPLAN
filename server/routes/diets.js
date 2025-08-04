@@ -225,10 +225,20 @@ router.get('/:id/pdf', auth, async (req, res) => {
     const html = generateDietPlanHTML(dietPlan);
     
     try {
-      // Launch Puppeteer
+      // Launch Puppeteer with Render-compatible settings
       const browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-extensions'
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
       });
       
       const page = await browser.newPage();
@@ -254,6 +264,7 @@ router.get('/:id/pdf', auth, async (req, res) => {
       
       res.send(pdf);
     } catch (puppeteerError) {
+      console.error('Puppeteer error:', puppeteerError);
       // Fallback to HTML export
       res.setHeader('Content-Type', 'text/html');
       res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
