@@ -8,8 +8,7 @@ import {
   User, 
   Target, 
   FileText,
-  Utensils,
-  X
+  Utensils
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
@@ -19,11 +18,8 @@ const ClientDetail = () => {
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
   const [dietPlans, setDietPlans] = useState([]);
-  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingDietPlan, setEditingDietPlan] = useState(null);
 
   const fetchClientData = useCallback(async () => {
     try {
@@ -45,19 +41,9 @@ const ClientDetail = () => {
     }
   }, [id]);
 
-  const fetchClients = async () => {
-    try {
-      const response = await api.get('/api/clients');
-      setClients(response.data);
-    } catch (error) {
-      console.error('Failed to load clients');
-    }
-  };
-
   useEffect(() => {
     if (id) {
       fetchClientData();
-      fetchClients();
     }
   }, [id, fetchClientData]);
 
@@ -77,11 +63,6 @@ const ClientDetail = () => {
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
-  };
-
-  const handleEditDietPlan = (plan) => {
-    setEditingDietPlan(plan);
-    setShowEditModal(true);
   };
 
   if (loading) {
@@ -117,29 +98,29 @@ const ClientDetail = () => {
     <div className="min-h-screen bg-black">
       {/* Header */}
       <div className="bg-gray-900/95 shadow-sm border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 lg:py-6 gap-3 lg:gap-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-6">
             <div className="flex items-center">
               <button
                 onClick={() => navigate('/clients')}
-                className="mr-3 lg:mr-4 text-gray-400 hover:text-gray-300 transition-colors"
+                className="mr-4 text-gray-400 hover:text-gray-300 transition-colors"
               >
-                <ArrowLeft className="h-5 w-5 lg:h-6 lg:w-6" />
+                <ArrowLeft className="h-6 w-6" />
               </button>
               <div>
-                <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-white">{client.personalInfo.name}</h1>
-                <p className="mt-1 text-xs lg:text-sm text-gray-400">
+                <h1 className="text-2xl font-bold text-white">{client.personalInfo.name}</h1>
+                <p className="mt-1 text-sm text-gray-400">
                   Client Profile • {client.personalInfo.age} years old • {client.personalInfo.gender}
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 lg:space-x-3">
+            <div className="flex items-center space-x-3">
               {getStatusBadge(client.status)}
               <Link
                 to={`/clients/edit/${id}`}
-                className="inline-flex items-center px-2 lg:px-3 py-1.5 lg:py-2 border border-gray-700 shadow-sm text-xs lg:text-sm leading-4 font-medium rounded-xl text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
+                className="inline-flex items-center px-3 py-2 border border-gray-700 shadow-sm text-sm leading-4 font-medium rounded-xl text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
               >
-                <Edit className="-ml-0.5 mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+                <Edit className="-ml-0.5 mr-2 h-4 w-4" />
                 Edit
               </Link>
             </div>
@@ -149,8 +130,8 @@ const ClientDetail = () => {
 
       {/* Tabs */}
       <div className="bg-gray-900/95 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <nav className="-mb-px flex space-x-4 lg:space-x-8 overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="-mb-px flex space-x-8">
             {[
               { id: 'overview', label: 'Overview', icon: User },
               { id: 'progress', label: 'Progress', icon: Target },
@@ -162,13 +143,13 @@ const ClientDetail = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-3 lg:py-4 px-1 border-b-2 font-medium text-xs lg:text-sm flex items-center transition-colors whitespace-nowrap ${
+                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors ${
                     activeTab === tab.id
                       ? 'border-red-500 text-red-400'
                       : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                   }`}
                 >
-                  <Icon className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+                  <Icon className="mr-2 h-4 w-4" />
                   {tab.label}
                 </button>
               );
@@ -178,14 +159,14 @@ const ClientDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto py-4 lg:py-6 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {activeTab === 'overview' && (
-          <div className="space-y-4 lg:space-y-6">
+          <div className="space-y-6">
             {/* Personal Information */}
-            <div className="bg-gray-900/95 shadow-xl rounded-xl lg:rounded-2xl border border-gray-800">
-              <div className="px-4 lg:px-6 py-4 lg:py-6">
-                <h3 className="text-base lg:text-lg leading-6 font-medium text-white mb-4 lg:mb-6">Personal Information</h3>
-                <div className="grid grid-cols-1 gap-4 lg:gap-6 sm:grid-cols-2">
+            <div className="bg-gray-900/95 shadow-xl rounded-2xl border border-gray-800">
+              <div className="px-6 py-6">
+                <h3 className="text-lg leading-6 font-medium text-white mb-6">Personal Information</h3>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-400">Full Name</label>
                     <p className="mt-1 text-sm text-white">{client.personalInfo.name}</p>
@@ -342,24 +323,24 @@ const ClientDetail = () => {
         )}
 
         {activeTab === 'diets' && (
-          <div className="space-y-4 lg:space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h3 className="text-base lg:text-lg leading-6 font-medium text-white">Diet Plans</h3>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg leading-6 font-medium text-white">Diet Plans</h3>
               <Link
-                to={`/diet-plans?showModal=true&clientId=${id}`}
-                className="inline-flex items-center px-3 lg:px-4 py-2 border border-transparent shadow-sm text-xs lg:text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all"
+                to={`/diet-plans/add?clientId=${id}`}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all"
               >
-                <Plus className="-ml-1 mr-1 lg:mr-2 h-4 w-4 lg:h-5 lg:w-5" />
+                <Plus className="-ml-1 mr-2 h-5 w-5" />
                 Add Diet Plan
               </Link>
             </div>
 
             {dietPlans.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 lg:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {dietPlans.map((plan) => (
-                  <div key={plan._id} className="bg-gray-900/95 shadow-xl rounded-xl lg:rounded-2xl border border-gray-800 p-4 lg:p-6 hover:border-gray-700 transition-colors">
-                    <div className="flex items-center justify-between mb-3 lg:mb-4">
-                      <h4 className="text-sm lg:text-lg font-semibold text-white">{plan.name}</h4>
+                  <div key={plan._id} className="bg-gray-900/95 shadow-xl rounded-2xl border border-gray-800 p-6 hover:border-gray-700 transition-colors">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-white">{plan.name}</h4>
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         plan.isActive 
                           ? 'bg-green-900/20 text-green-400 border border-green-800' 
@@ -369,50 +350,50 @@ const ClientDetail = () => {
                       </span>
                     </div>
                     
-                    <div className="space-y-2 lg:space-y-3 mb-3 lg:mb-4">
+                    <div className="space-y-3 mb-4">
                       <div className="flex justify-between">
-                        <span className="text-gray-400 text-xs lg:text-sm">Goal:</span>
-                        <span className="text-white text-xs lg:text-sm">{plan.goal}</span>
+                        <span className="text-gray-400">Goal:</span>
+                        <span className="text-white">{plan.goal}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400 text-xs lg:text-sm">Calories:</span>
-                        <span className="text-white text-xs lg:text-sm">{plan.dailyCalories?.toLocaleString()} cal</span>
+                        <span className="text-gray-400">Calories:</span>
+                        <span className="text-white">{plan.dailyCalories?.toLocaleString()} cal</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400 text-xs lg:text-sm">Created:</span>
-                        <span className="text-white text-xs lg:text-sm">{formatDate(plan.createdAt)}</span>
+                        <span className="text-gray-400">Created:</span>
+                        <span className="text-white">{formatDate(plan.createdAt)}</span>
                       </div>
                     </div>
                     
                     <div className="flex space-x-2">
                       <Link
                         to={`/diet-plans/${plan._id}`}
-                        className="flex-1 bg-gray-800 hover:bg-gray-700 text-white px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg text-xs lg:text-sm font-medium text-center transition-colors"
+                        className="flex-1 bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium text-center transition-colors"
                       >
                         View
                       </Link>
-                      <button
-                        onClick={() => handleEditDietPlan(plan)}
-                        className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg text-xs lg:text-sm font-medium text-center transition-all"
+                      <Link
+                        to={`/diet-plans/edit/${plan._id}`}
+                        className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium text-center transition-all"
                       >
                         Edit
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="bg-gray-900/95 shadow-xl rounded-xl lg:rounded-2xl border border-gray-800 p-4 lg:p-6">
-                <div className="text-center py-6 lg:py-8">
-                  <Utensils className="mx-auto h-8 w-8 lg:h-12 lg:w-12 text-gray-400" />
+              <div className="bg-gray-900/95 shadow-xl rounded-2xl border border-gray-800 p-6">
+                <div className="text-center py-8">
+                  <Utensils className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-white">No diet plans yet</h3>
-                  <p className="mt-1 text-xs lg:text-sm text-gray-400">Create a diet plan for this client to get started.</p>
-                  <div className="mt-4 lg:mt-6">
+                  <p className="mt-1 text-sm text-gray-400">Create a diet plan for this client to get started.</p>
+                  <div className="mt-6">
                     <Link
-                      to={`/diet-plans?showModal=true&clientId=${id}`}
-                      className="inline-flex items-center px-3 lg:px-4 py-2 border border-transparent shadow-sm text-xs lg:text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all"
+                      to={`/diet-plans/add?clientId=${id}`}
+                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all"
                     >
-                      <Plus className="-ml-1 mr-1 lg:mr-2 h-4 w-4 lg:h-5 lg:w-5" />
+                      <Plus className="-ml-1 mr-2 h-5 w-5" />
                       Create First Diet Plan
                     </Link>
                   </div>
@@ -492,242 +473,6 @@ const ClientDetail = () => {
             )}
           </div>
         )}
-      </div>
-
-      {showEditModal && editingDietPlan && (
-        <EditDietPlanModal
-          dietPlan={editingDietPlan}
-          clients={clients}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingDietPlan(null);
-          }}
-          onSuccess={() => {
-            setShowEditModal(false);
-            setEditingDietPlan(null);
-            fetchClientData();
-          }}
-        />
-      )}
-    </div>
-  );
-};
-
-// Edit Diet Plan Modal Component
-const EditDietPlanModal = ({ dietPlan, clients, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    name: dietPlan.name || '',
-    clientId: dietPlan.clientId?._id || dietPlan.clientId || '',
-    goal: dietPlan.goal || 'Weight Loss',
-    dailyCalories: dietPlan.dailyCalories || '',
-    description: dietPlan.description || '',
-    restrictions: dietPlan.restrictions || '',
-    supplements: dietPlan.supplements || '',
-    hydration: dietPlan.hydration || '',
-    isActive: dietPlan.isActive !== undefined ? dietPlan.isActive : true,
-    dailyMeals: dietPlan.dailyMeals || []
-  });
-  const [saving, setSaving] = useState(false);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    
-    try {
-      await api.put(`/api/diets/${dietPlan._id}`, formData);
-      toast.success('Diet plan updated successfully!');
-      onSuccess();
-    } catch (error) {
-      console.error('Error updating diet plan:', error);
-      toast.error('Failed to update diet plan');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-800">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">Edit Diet Plan</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Plan Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Enter plan name"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Client
-              </label>
-              <select
-                name="clientId"
-                value={formData.clientId}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select a client</option>
-                {clients.map(client => (
-                  <option key={client._id} value={client._id}>
-                    {client.personalInfo.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Goal
-              </label>
-              <select
-                name="goal"
-                value={formData.goal}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                required
-              >
-                <option value="Weight Loss">Weight Loss</option>
-                <option value="Muscle Gain">Muscle Gain</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Performance">Performance</option>
-                <option value="General Health">General Health</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Daily Calories
-              </label>
-              <input
-                type="number"
-                name="dailyCalories"
-                value={formData.dailyCalories}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Enter daily calories"
-                required
-                min="800"
-                max="5000"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows="3"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter plan description"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Dietary Restrictions
-            </label>
-            <textarea
-              name="restrictions"
-              value={formData.restrictions}
-              onChange={handleInputChange}
-              rows="2"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter dietary restrictions"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Recommended Supplements
-            </label>
-            <textarea
-              name="supplements"
-              value={formData.supplements}
-              onChange={handleInputChange}
-              rows="2"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter recommended supplements"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Hydration Guidelines
-            </label>
-            <textarea
-              name="hydration"
-              value={formData.hydration}
-              onChange={handleInputChange}
-              rows="2"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter hydration guidelines"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="isActive"
-              checked={formData.isActive}
-              onChange={handleInputChange}
-              className="w-4 h-4 text-red-600 bg-gray-800 border-gray-700 rounded focus:ring-red-500 focus:ring-2"
-            />
-            <label className="ml-2 text-sm text-gray-300">
-              Active Plan
-            </label>
-          </div>
-
-          <div className="flex gap-3 pt-6 border-t border-gray-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg font-medium transition-all disabled:opacity-50"
-            >
-              {saving ? 'Updating...' : 'Update Plan'}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   );

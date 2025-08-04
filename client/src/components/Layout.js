@@ -1,134 +1,202 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Home, 
   Users, 
   Target, 
   BarChart3, 
-  Settings, 
+  Settings,
   LogOut,
   Menu,
-  X
+  X,
+  User
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { toast } from 'react-hot-toast';
+import { useDarkMode } from '../contexts/DarkModeContext';
+import SettingsModal from './settings/Settings';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
-  const location = useLocation();
+  const { isDarkMode } = useDarkMode();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
-    toast.success('Logged out successfully');
   };
 
-  // Close sidebar when location changes (mobile)
-  useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setSidebarOpen(false);
-    }
-  }, [location.pathname]);
+  const isActive = (path) => {
+    return window.location.pathname === path;
+  };
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Clients', href: '/clients', icon: Users },
-    { name: 'Diet Plans', href: '/diet-plans', icon: Target },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Dashboard', href: '/', icon: Home, description: 'Overview & Analytics' },
+    { name: 'Clients', href: '/clients', icon: Users, description: 'Manage Client Profiles' },
+    { name: 'Diet Plans', href: '/diet-plans', icon: Target, description: 'Create & Manage Plans' },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Performance Metrics' },
   ];
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg bg-gray-900/95 border border-gray-800 text-gray-300 hover:text-white transition-colors"
-        >
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
+    <div className={`min-h-screen flex transition-all duration-500 ${
+      isDarkMode 
+        ? 'bg-black' 
+        : 'bg-black'
+    }`}>
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900/95 backdrop-blur-sm border-r border-gray-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-80 transform transition-all duration-500 ease-out lg:translate-x-0 lg:static lg:inset-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      } ${
+        isDarkMode 
+          ? 'bg-black/95 backdrop-blur-xl border-r border-gray-800' 
+          : 'bg-black/95 backdrop-blur-xl border-r border-gray-800'
+      } shadow-2xl`}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-center h-14 lg:h-16 px-4 lg:px-6 border-b border-gray-800">
-            <h1 className="text-lg lg:text-xl font-bold text-white text-center">NutriPlan by A S T R A</h1>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-3 lg:px-4 py-4 lg:py-6 space-y-1 lg:space-y-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center px-3 lg:px-4 py-2 lg:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg'
-                      : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
-                  }`}
-                >
-                  <Icon className="mr-2 lg:mr-3 h-4 w-4 lg:h-5 lg:w-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* User section */}
-          <div className="p-3 lg:p-4 border-t border-gray-800">
-            <div className="flex items-center px-3 lg:px-4 py-2 lg:py-3">
-              <div className="flex-shrink-0">
-                <div className="w-6 h-6 lg:w-8 lg:h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                  <span className="text-xs lg:text-sm font-semibold text-white">
-                    {user?.name?.charAt(0) || 'T'}
-                  </span>
-                </div>
+          {/* Logo Section */}
+          <div className={`flex items-center justify-between h-20 px-6 border-b border-gray-800`}>
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-red-500 rounded-lg flex items-center justify-center shadow-lg">
+                <Target className="w-7 h-7 text-white" />
               </div>
-              <div className="ml-2 lg:ml-3 flex-1 min-w-0">
-                <p className="text-xs lg:text-sm font-medium text-white truncate">
-                  {user?.name || 'Trainer'}
-                </p>
-                <p className="text-xs text-gray-400 truncate">
-                  {user?.email || 'trainer@nutriplan.com'}
+              <div className="ml-4">
+                <span className="text-2xl font-bold text-white">
+                  NutriPlan
+                </span>
+                <p className="text-xs text-gray-400">
+                  by A S T R A
                 </p>
               </div>
             </div>
             <button
-              onClick={handleLogout}
-              className="w-full flex items-center px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-xl transition-all duration-200"
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
             >
-              <LogOut className="mr-2 lg:mr-3 h-4 w-4 lg:h-5 lg:w-5" />
-              Logout
+              <X className="w-5 h-5" />
             </button>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6">
+            <div className="space-y-2">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`group flex items-center px-4 py-4 text-sm font-medium rounded-lg transition-all duration-300 ${
+                      isActive(item.href)
+                        ? 'bg-gray-800 text-white border-l-4 border-red-500'
+                        : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 mr-3 transition-all duration-300 ${
+                      isActive(item.href) ? 'text-red-500' : 'text-gray-400 group-hover:text-gray-300'
+                    }`} />
+                    <div className="flex-1">
+                      <div className="font-semibold">{item.name}</div>
+                      <div className={`text-xs ${
+                        isActive(item.href) 
+                          ? 'text-gray-400' 
+                          : 'text-gray-500'
+                      }`}>
+                        {item.description}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+
+          </nav>
+
+          {/* User Section */}
+          <div className={`p-4 border-t border-gray-800`}>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-red-600 to-red-500 rounded-lg flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate text-white">
+                  {user?.name || 'Trainer'}
+                </p>
+                <p className="text-xs truncate text-gray-400">
+                  {user?.email || 'trainer@example.com'}
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-800 transition-all"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Overlay for mobile */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-          onTouchStart={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className={`sticky top-0 z-30 backdrop-blur-xl border-b border-gray-800 bg-black/95`}>
+          <div className="flex items-center justify-between h-16 px-6">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
 
-      {/* Main content */}
-      <div className="lg:pl-64">
-        <main className="min-h-screen">
-          {children}
+            {/* Search and Actions */}
+            <div className="flex items-center space-x-4">
+              {/* User Section */}
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setSettingsOpen(true)}
+                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
+                  title="Settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+
+                {/* User Welcome */}
+                <div className="hidden lg:flex items-center space-x-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-white">
+                      Welcome back, {user?.name || 'Trainer'}!
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Ready to create amazing diet plans?
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 p-6">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
+
+      {/* Settings Modal */}
+      {settingsOpen && (
+        <SettingsModal onClose={() => setSettingsOpen(false)} />
+      )}
     </div>
   );
 };

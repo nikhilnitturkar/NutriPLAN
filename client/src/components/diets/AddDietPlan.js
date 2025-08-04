@@ -7,6 +7,8 @@ import {
   ArrowLeft, 
   Plus, 
   Trash2, 
+  Utensils,
+  Target,
   Calculator
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -31,6 +33,7 @@ const AddDietPlan = () => {
 
   const watchGoal = watch('goal');
   const watchDailyCalories = watch('dailyCalories');
+  const watchClientId = watch('clientId');
 
   useEffect(() => {
     fetchClients();
@@ -162,123 +165,146 @@ const AddDietPlan = () => {
     <div className="min-h-screen bg-black">
       {/* Header */}
       <div className="bg-gray-900/95 shadow-sm border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex items-center py-4 lg:py-6">
-            <button
-              onClick={() => navigate('/diet-plans')}
-              className="mr-3 lg:mr-4 text-gray-400 hover:text-gray-300 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5 lg:h-6 lg:w-6" />
-            </button>
-            <div>
-              <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-white">Create New Diet Plan</h1>
-              <p className="mt-1 text-xs lg:text-sm text-gray-400">
-                Design a personalized nutrition plan for your client
-              </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-6">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate('/diet-plans')}
+                className="mr-4 text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Create Diet Plan</h1>
+                <p className="mt-1 text-sm text-gray-400">
+                  Design a personalized nutrition plan for your client
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Form */}
-      <div className="max-w-4xl mx-auto py-4 lg:py-8 px-3 sm:px-4 lg:px-8">
-        <div className="bg-gray-900/95 shadow-xl rounded-xl lg:rounded-2xl border border-gray-800 p-4 lg:p-8">
-          <h2 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Diet Plan Information</h2>
-          
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 lg:space-y-6">
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                  Plan Name *
-                </label>
-                <input
-                  type="text"
-                  {...register('name', { required: 'Plan name is required' })}
-                  className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Enter plan name"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-xs text-red-400">{errors.name.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                  Client *
-                </label>
-                <select
-                  {...register('clientId', { required: 'Client is required' })}
-                  onChange={(e) => handleClientSelect(e.target.value)}
-                  className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                >
-                  <option value="">Select a client</option>
-                  {clients.map((client) => (
-                    <option key={client._id} value={client._id}>
-                      {client.personalInfo.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.clientId && (
-                  <p className="mt-1 text-xs text-red-400">{errors.clientId.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                  Goal *
-                </label>
-                <select
-                  {...register('goal', { required: 'Goal is required' })}
-                  className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                >
-                  <option value="">Select goal</option>
-                  <option value="Weight Loss">Weight Loss</option>
-                  <option value="Muscle Gain">Muscle Gain</option>
-                  <option value="Maintenance">Maintenance</option>
-                  <option value="Performance">Performance</option>
-                  <option value="General Health">General Health</option>
-                </select>
-                {errors.goal && (
-                  <p className="mt-1 text-xs text-red-400">{errors.goal.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                  Daily Calories *
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    {...register('dailyCalories', { 
-                      required: 'Daily calories are required',
-                      min: { value: 800, message: 'Calories must be at least 800' },
-                      max: { value: 5000, message: 'Calories must be less than 5000' }
-                    })}
-                    className="flex-1 px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Enter daily calories"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCalculator(true)}
-                    className="px-3 lg:px-4 py-2 lg:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs lg:text-sm font-medium transition-colors"
-                  >
-                    <Calculator className="w-4 h-4 lg:w-5 lg:h-5" />
-                  </button>
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white" />
                 </div>
-                {errors.dailyCalories && (
-                  <p className="mt-1 text-xs text-red-400">{errors.dailyCalories.message}</p>
-                )}
+                <h2 className="text-xl font-semibold text-white">Basic Information</h2>
+              </div>
+          
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Plan Name *
+                  </label>
+                  <input
+                    type="text"
+                    {...register('name', { required: 'Plan name is required' })}
+                    className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                    placeholder="e.g., Weight Loss Plan"
+                  />
+                  {errors.name && (
+                    <p className="text-red-400 text-sm mt-1">{errors.name.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Client *
+                  </label>
+                  <select
+                    {...register('clientId', { required: 'Please select a client' })}
+                    onChange={(e) => handleClientSelect(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                  >
+                    <option value="">Select a client</option>
+                    {clients.map(client => (
+                      <option key={client._id} value={client._id}>
+                        {client.personalInfo?.name} - {client.personalInfo?.age} years
+                      </option>
+                    ))}
+                  </select>
+                  {errors.clientId && (
+                    <p className="text-red-400 text-sm mt-1">{errors.clientId.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Goal *
+                  </label>
+                  <select
+                    {...register('goal', { required: 'Please select a goal' })}
+                    className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                  >
+                    <option value="">Select goal</option>
+                    <option value="Weight Loss">Weight Loss</option>
+                    <option value="Muscle Gain">Muscle Gain</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Performance">Performance</option>
+                    <option value="General Health">General Health</option>
+                  </select>
+                  {errors.goal && (
+                    <p className="text-red-400 text-sm mt-1">{errors.goal.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Daily Calories *
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      {...register('dailyCalories', { 
+                        required: 'Daily calories is required',
+                        min: { value: 800, message: 'Minimum 800 calories' },
+                        max: { value: 5000, message: 'Maximum 5000 calories' }
+                      })}
+                      className="flex-1 px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                      placeholder="e.g., 2000"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCalculator(!showCalculator)}
+                      className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center gap-2 transition-all disabled:opacity-50"
+                      disabled={!watchClientId}
+                    >
+                      <Calculator size={16} />
+                      Calculate
+                    </button>
+                  </div>
+                  {errors.dailyCalories && (
+                    <p className="text-red-400 text-sm mt-1">{errors.dailyCalories.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Description
+                </label>
+                <textarea
+                  {...register('description')}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                  placeholder="Describe the diet plan and its objectives..."
+                />
               </div>
             </div>
 
             {/* Calorie Calculator Modal */}
             {showCalculator && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                <div className="bg-gray-900 rounded-xl lg:rounded-2xl shadow-2xl border border-gray-800 max-w-2xl w-full p-4 lg:p-6">
-                  <div className="flex items-center justify-between mb-4 lg:mb-6">
-                    <h3 className="text-lg lg:text-xl font-semibold text-white">Calorie Calculator</h3>
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-6 max-w-2xl w-full mx-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white">Calorie Calculator</h3>
                     <button
                       onClick={() => setShowCalculator(false)}
                       className="text-gray-400 hover:text-gray-300"
@@ -296,222 +322,206 @@ const AddDietPlan = () => {
 
             {/* Macronutrients */}
             {watchDailyCalories && watchGoal && (
-              <div className="space-y-4 lg:space-y-6">
-                <h3 className="text-base lg:text-lg font-semibold text-white mb-4 lg:mb-6">Macronutrients</h3>
+              <div className="space-y-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">Macronutrients</h2>
+                </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-                  <div className="bg-gray-800/50 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-gray-700">
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">Protein (g)</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Protein (g)</label>
                     <input
                       type="number"
                       {...register('protein')}
                       value={calculateMacros(watchDailyCalories, watchGoal).protein}
                       onChange={(e) => setValue('protein', e.target.value)}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-700 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     />
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-gray-700">
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">Carbohydrates (g)</label>
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Carbohydrates (g)</label>
                     <input
                       type="number"
                       {...register('carbs')}
                       value={calculateMacros(watchDailyCalories, watchGoal).carbs}
                       onChange={(e) => setValue('carbs', e.target.value)}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-700 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     />
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-gray-700">
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">Fat (g)</label>
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Fat (g)</label>
                     <input
                       type="number"
                       {...register('fat')}
                       value={calculateMacros(watchDailyCalories, watchGoal).fat}
                       onChange={(e) => setValue('fat', e.target.value)}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-700 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Meal Form */}
-            {showMealForm && (
-              <div className="bg-gray-800/50 rounded-lg lg:rounded-xl p-4 lg:p-6 border border-gray-700">
-                <h3 className="text-base lg:text-lg font-semibold text-white mb-4 lg:mb-6">Add Meal</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                      Meal Type *
-                    </label>
-                    <select
-                      value={currentMeal.mealType || ''}
-                      onChange={(e) => setCurrentMeal({...currentMeal, mealType: e.target.value})}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    >
-                      <option value="">Select meal type</option>
-                      <option value="Breakfast">Breakfast</option>
-                      <option value="Lunch">Lunch</option>
-                      <option value="Dinner">Dinner</option>
-                      <option value="Snack">Snack</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                      Meal Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={currentMeal.name || ''}
-                      onChange={(e) => setCurrentMeal({...currentMeal, name: e.target.value})}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter meal name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                      Calories
-                    </label>
-                    <input
-                      type="number"
-                      value={currentMeal.calories || ''}
-                      onChange={(e) => setCurrentMeal({...currentMeal, calories: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter calories"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                      Protein (g)
-                    </label>
-                    <input
-                      type="number"
-                      value={currentMeal.protein || ''}
-                      onChange={(e) => setCurrentMeal({...currentMeal, protein: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter protein"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                      Carbs (g)
-                    </label>
-                    <input
-                      type="number"
-                      value={currentMeal.carbs || ''}
-                      onChange={(e) => setCurrentMeal({...currentMeal, carbs: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter carbs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                      Fat (g)
-                    </label>
-                    <input
-                      type="number"
-                      value={currentMeal.fat || ''}
-                      onChange={(e) => setCurrentMeal({...currentMeal, fat: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter fat"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4 lg:mt-6">
-                  <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={currentMeal.description || ''}
-                    onChange={(e) => setCurrentMeal({...currentMeal, description: e.target.value})}
-                    rows="3"
-                    className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Enter meal description"
-                  />
-                </div>
-
-                <div className="mt-4 lg:mt-6">
-                  <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                    Ingredients
-                  </label>
-                  <textarea
-                    value={currentMeal.ingredients || ''}
-                    onChange={(e) => setCurrentMeal({...currentMeal, ingredients: e.target.value})}
-                    rows="3"
-                    className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Enter ingredients"
-                  />
-                </div>
-
-                <div className="mt-4 lg:mt-6">
-                  <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">
-                    Instructions
-                  </label>
-                  <textarea
-                    value={currentMeal.instructions || ''}
-                    onChange={(e) => setCurrentMeal({...currentMeal, instructions: e.target.value})}
-                    rows="3"
-                    className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Enter cooking instructions"
-                  />
-                </div>
-
-                <div className="flex gap-2 mt-4 lg:mt-6">
-                  <button
-                    type="button"
-                    onClick={saveMeal}
-                    className="px-4 lg:px-6 py-2 lg:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg lg:rounded-xl text-xs lg:text-sm font-medium transition-colors"
-                  >
-                    Save Meal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowMealForm(false)}
-                    className="px-4 lg:px-6 py-2 lg:py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg lg:rounded-xl text-xs lg:text-sm font-medium transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Meals List */}
-            <div className="space-y-4 lg:space-y-6">
+            {/* Meals */}
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-base lg:text-lg font-semibold text-white">Daily Meals</h3>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                    <Utensils className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">Daily Meals</h2>
+                </div>
                 <button
                   type="button"
                   onClick={addMeal}
-                  className="px-3 lg:px-4 py-2 lg:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg lg:rounded-xl text-xs lg:text-sm font-medium flex items-center gap-1 lg:gap-2 transition-colors"
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center gap-2 transition-all"
                 >
-                  <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <Plus size={16} />
                   Add Meal
                 </button>
               </div>
 
-              <div className="space-y-3 lg:space-y-4">
+              {/* Meal Form */}
+              {showMealForm && (
+                <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                  <h3 className="text-lg font-semibold text-white mb-4">Add New Meal</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">Meal Type</label>
+                      <select
+                        value={currentMeal.mealType || ''}
+                        onChange={(e) => setCurrentMeal({...currentMeal, mealType: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                      >
+                        <option value="">Select meal type</option>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch">Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                        <option value="Snack">Snack</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">Meal Name</label>
+                      <input
+                        type="text"
+                        value={currentMeal.name || ''}
+                        onChange={(e) => setCurrentMeal({...currentMeal, name: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                        placeholder="e.g., Grilled Chicken Salad"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">Calories</label>
+                      <input
+                        type="number"
+                        value={currentMeal.calories || ''}
+                        onChange={(e) => setCurrentMeal({...currentMeal, calories: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                        placeholder="e.g., 350"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">Protein (g)</label>
+                      <input
+                        type="number"
+                        value={currentMeal.protein || ''}
+                        onChange={(e) => setCurrentMeal({...currentMeal, protein: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                        placeholder="e.g., 25"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">Carbs (g)</label>
+                      <input
+                        type="number"
+                        value={currentMeal.carbs || ''}
+                        onChange={(e) => setCurrentMeal({...currentMeal, carbs: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                        placeholder="e.g., 30"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">Fat (g)</label>
+                      <input
+                        type="number"
+                        value={currentMeal.fat || ''}
+                        onChange={(e) => setCurrentMeal({...currentMeal, fat: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                        placeholder="e.g., 12"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Description</label>
+                    <textarea
+                      value={currentMeal.description || ''}
+                      onChange={(e) => setCurrentMeal({...currentMeal, description: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                      placeholder="Describe the meal..."
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Ingredients</label>
+                    <textarea
+                      value={currentMeal.ingredients || ''}
+                      onChange={(e) => setCurrentMeal({...currentMeal, ingredients: e.target.value})}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                      placeholder="List ingredients..."
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Instructions</label>
+                    <textarea
+                      value={currentMeal.instructions || ''}
+                      onChange={(e) => setCurrentMeal({...currentMeal, instructions: e.target.value})}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                      placeholder="Cooking instructions..."
+                    />
+                  </div>
+                  <div className="flex gap-2 mt-6">
+                    <button
+                      type="button"
+                      onClick={saveMeal}
+                      className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-xl flex items-center gap-2 transition-all"
+                    >
+                      <Save size={16} />
+                      Save Meal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMealForm(false);
+                        setCurrentMeal({});
+                      }}
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Meals List */}
+              <div className="space-y-4">
                 {watch('dailyMeals')?.map((meal, index) => (
-                  <div key={index} className="bg-gray-800/50 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-gray-700">
-                    <div className="flex items-center justify-between mb-2 lg:mb-3">
-                      <h4 className="text-sm lg:text-base font-semibold text-white">{meal.mealType} - {meal.name}</h4>
+                  <div key={index} className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-white">{meal.mealType}: {meal.name}</h4>
                       <button
                         type="button"
                         onClick={() => removeMeal(index)}
                         className="text-red-400 hover:text-red-300 transition-colors"
                       >
-                        <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
+                        <Trash2 size={16} />
                       </button>
                     </div>
-                    {meal.description && (
-                      <p className="text-xs lg:text-sm text-gray-400 mb-2 lg:mb-3">{meal.description}</p>
-                    )}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4 text-xs lg:text-sm">
+                    <div className="grid grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="text-gray-400">Calories:</span>
                         <span className="text-white ml-1">{meal.calories}</span>
@@ -535,64 +545,69 @@ const AddDietPlan = () => {
             </div>
 
             {/* Additional Information */}
-            <div className="space-y-4 lg:space-y-6">
-              <h3 className="text-base lg:text-lg font-semibold text-white mb-4 lg:mb-6">Additional Information</h3>
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-white">Additional Information</h2>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">Dietary Restrictions</label>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">Dietary Restrictions</label>
                   <textarea
                     {...register('restrictions')}
-                    rows="3"
-                    className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     placeholder="Any dietary restrictions or allergies..."
                   />
                 </div>
                 <div>
-                  <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">Supplements</label>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">Supplements</label>
                   <textarea
                     {...register('supplements')}
-                    rows="3"
-                    className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                     placeholder="Recommended supplements..."
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1 lg:mb-2">Hydration Guidelines</label>
+                <label className="block text-sm font-medium text-gray-200 mb-2">Hydration Guidelines</label>
                 <textarea
                   {...register('hydrate')}
-                  rows="3"
-                  className="w-full px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                   placeholder="Hydration recommendations..."
                 />
               </div>
             </div>
 
             {/* Submit Button */}
-            <div className="flex flex-col sm:flex-row justify-end gap-3 lg:gap-4 pt-4 lg:pt-6">
+            <div className="flex justify-end space-x-4 pt-6">
               <button
                 type="button"
                 onClick={() => navigate('/diet-plans')}
-                className="px-4 lg:px-6 py-2 lg:py-3 border border-gray-700 text-gray-300 rounded-lg lg:rounded-xl hover:bg-gray-800 transition-colors text-xs lg:text-sm"
+                className="px-6 py-3 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-800 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 lg:px-6 py-2 lg:py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg lg:rounded-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs lg:text-sm"
+                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {loading ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-3 w-3 lg:h-4 lg:w-4 border-b-2 border-white mr-1 lg:mr-2"></div>
-                    <span>Creating Plan...</span>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating Plan...
                   </div>
                 ) : (
                   <div className="flex items-center">
-                    <Save className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                    <span>Create Diet Plan</span>
+                    <Save className="w-4 h-4 mr-2" />
+                    Create Diet Plan
                   </div>
                 )}
               </button>
