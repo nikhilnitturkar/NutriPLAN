@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import api from '../../utils/api';
 import { 
   Plus, 
-  Search, 
   Edit, 
   Trash2, 
   Download, 
-  X,
-  Users,
+  Search,
+  Filter,
+  Eye,
+  Calendar,
   Target,
-  Calculator,
-  ArrowUp,
-  ArrowDown,
-  Minus
+  ArrowRight,
+  X
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import api from '../../utils/api';
+import toast from 'react-hot-toast';
 
 const DietPlans = () => {
   const navigate = useNavigate();
@@ -376,7 +376,7 @@ const CreateDietPlanModal = ({ clients, onClose, onSuccess, selectedClientId = n
     }
 
     try {
-      const response = await api.post('/api/diets', formData);
+      await api.post('/api/diets', formData);
       toast.success('Diet plan created successfully!');
       onSuccess();
     } catch (error) {

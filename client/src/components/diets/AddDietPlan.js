@@ -7,8 +7,6 @@ import {
   ArrowLeft, 
   Plus, 
   Trash2, 
-  Utensils,
-  Target,
   Calculator
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -33,7 +31,6 @@ const AddDietPlan = () => {
 
   const watchGoal = watch('goal');
   const watchDailyCalories = watch('dailyCalories');
-  const watchClientId = watch('clientId');
 
   useEffect(() => {
     fetchClients();

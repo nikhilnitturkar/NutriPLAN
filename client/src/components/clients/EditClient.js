@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, User, Phone, MapPin, Activity, Target } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 
 const EditClient = () => {
   const navigate = useNavigate();
