@@ -11,6 +11,7 @@ const DietPlanDetail = () => {
   const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   const fetchDietPlan = useCallback(async () => {
     try {
@@ -60,56 +61,83 @@ const DietPlanDetail = () => {
 
   const handleExport = async () => {
     setExporting(true);
+    setExportProgress(0);
+    
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setExportProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+
     try {
       const response = await api.get(`/api/diets/${id}/pdf`, {
         responseType: 'blob'
       });
 
-      // Check if the response is actually a PDF or HTML
-      const contentType = response.headers['content-type'];
-      const isPDF = contentType && contentType.includes('application/pdf');
-      const isHTML = contentType && contentType.includes('text/html');
+      clearInterval(progressInterval);
+      setExportProgress(100);
 
-      if (isPDF) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        const clientName = client?.personalInfo?.name || 'client';
-        link.setAttribute('download', `diet-plan-${clientName}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
+      // Small delay to show 100% completion
+      setTimeout(() => {
+        // Check if the response is actually a PDF or HTML
+        const contentType = response.headers['content-type'];
+        const isPDF = contentType && contentType.includes('application/pdf');
+        const isHTML = contentType && contentType.includes('text/html');
+
+        if (isPDF) {
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          const clientName = client?.personalInfo?.name || 'client';
+          link.setAttribute('download', `diet-plan-${clientName}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          
+          toast.success('PDF exported successfully!');
+        } else if (isHTML) {
+          // Handle HTML fallback
+          const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
+          const link = document.createElement('a');
+          link.href = url;
+          const clientName = client?.personalInfo?.name || 'client';
+          link.setAttribute('download', `diet-plan-${clientName}.html`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          
+          toast.success('HTML version exported (PDF generation failed)');
+        } else {
+          // Try to read error message from response
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorData = JSON.parse(reader.result);
+              toast.error(`Export failed: ${errorData.message || 'Unknown error'}`);
+            } catch {
+              toast.error('Export failed: Unable to generate PDF');
+            }
+          };
+          reader.readAsText(response.data);
+        }
         
-        toast.success('PDF exported successfully!');
-      } else if (isHTML) {
-        // Handle HTML fallback
-        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
-        const link = document.createElement('a');
-        link.href = url;
-        const clientName = client?.personalInfo?.name || 'client';
-        link.setAttribute('download', `diet-plan-${clientName}.html`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
-        
-        toast.success('HTML version exported (PDF generation failed)');
-      } else {
-        // Try to read error message from response
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const errorData = JSON.parse(reader.result);
-            toast.error(`Export failed: ${errorData.message || 'Unknown error'}`);
-          } catch {
-            toast.error('Export failed: Unable to generate PDF');
-          }
-        };
-        reader.readAsText(response.data);
-      }
+        setExporting(false);
+        setExportProgress(0);
+      }, 500);
+      
     } catch (error) {
+      clearInterval(progressInterval);
       console.error('Export error:', error);
+      setExporting(false);
+      setExportProgress(0);
+      
       if (error.response?.status === 500) {
         toast.error('Server error: PDF generation failed');
       } else if (error.response?.status === 404) {
@@ -117,8 +145,6 @@ const DietPlanDetail = () => {
       } else {
         toast.error('Failed to export PDF. Please try again.');
       }
-    } finally {
-      setExporting(false);
     }
   };
 
@@ -176,8 +202,17 @@ const DietPlanDetail = () => {
               disabled={exporting}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold flex items-center justify-center gap-1 lg:gap-2 transition-all duration-200 shadow-lg hover:shadow-xl text-xs lg:text-sm"
             >
-              <Download className="w-4 h-4 lg:w-5 lg:h-5" />
-              {exporting ? 'Exporting...' : 'Export PDF'}
+              {exporting ? (
+                <>
+                  <div className="w-4 h-4 lg:w-5 lg:h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <span>Export PDF</span>
+                </>
+              )}
             </button>
             <Link
               to={`/diet-plans/edit/${id}`}
@@ -501,6 +536,45 @@ const DietPlanDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Export Progress Modal */}
+      {exporting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Download className="w-8 h-8 text-white animate-pulse" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Exporting PDF</h3>
+              <p className="text-gray-400 mb-6">Generating your diet plan PDF...</p>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-800 rounded-full h-3 mb-4">
+                <div 
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 h-3 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${exportProgress}%` }}
+                />
+              </div>
+              
+              {/* Progress Text */}
+              <p className="text-sm text-gray-400">
+                {exportProgress < 100 ? `${Math.round(exportProgress)}% complete` : 'Download ready!'}
+              </p>
+              
+              {/* Loading Animation */}
+              {exportProgress < 100 && (
+                <div className="flex justify-center mt-4">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
