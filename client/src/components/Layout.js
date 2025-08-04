@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -22,6 +22,13 @@ const Layout = ({ children }) => {
     logout();
     toast.success('Logged out successfully');
   };
+
+  // Close sidebar when location changes (mobile)
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname]);
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -112,6 +119,7 @@ const Layout = ({ children }) => {
         <div 
           className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          onTouchStart={() => setSidebarOpen(false)}
         />
       )}
 
