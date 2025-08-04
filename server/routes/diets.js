@@ -62,11 +62,16 @@ const generateDietPlanHTML = (dietPlan) => {
             .food-portion { color: #6b7280; font-size: 0.9em; }
             .footer { margin-top: 30px; padding: 15px; background: #f8fafc; border-radius: 6px; text-align: center; color: #6b7280; font-size: 0.8em; }
             .footer strong { color: #dc2626; }
+            .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .medical-info { background: #fef3c7; border-left: 3px solid #f59e0b; }
+            .medical-info h3 { color: #d97706; }
+            .fitness-info { background: #dbeafe; border-left: 3px solid #3b82f6; }
+            .fitness-info h3 { color: #1d4ed8; }
         </style>
     </head>
     <body>
         <div class="header">
-            <h1>NutriPlan</h1>
+            <h1>NutriPlan by A S T R A</h1>
             <p>Personalized Nutrition Plan</p>
         </div>
         
@@ -94,6 +99,140 @@ const generateDietPlanHTML = (dietPlan) => {
             </div>
 
             <div class="section">
+                <h2>Client Information</h2>
+                <div class="two-column">
+                    <div>
+                        <h3>Personal Details</h3>
+                        <div class="info-grid">
+                            ${client?.personalInfo?.age ? `
+                            <div class="info-item">
+                                <h3>Age</h3>
+                                <p>${client.personalInfo.age} years</p>
+                            </div>
+                            ` : ''}
+                            ${client?.personalInfo?.gender ? `
+                            <div class="info-item">
+                                <h3>Gender</h3>
+                                <p>${client.personalInfo.gender}</p>
+                            </div>
+                            ` : ''}
+                            ${client?.personalInfo?.email ? `
+                            <div class="info-item">
+                                <h3>Email</h3>
+                                <p>${client.personalInfo.email}</p>
+                            </div>
+                            ` : ''}
+                            ${client?.personalInfo?.phone ? `
+                            <div class="info-item">
+                                <h3>Phone</h3>
+                                <p>${client.personalInfo.phone}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Fitness Profile</h3>
+                        <div class="info-grid">
+                            ${client?.activityLevel ? `
+                            <div class="info-item">
+                                <h3>Activity Level</h3>
+                                <p>${client.activityLevel}</p>
+                            </div>
+                            ` : ''}
+                            ${client?.experienceLevel ? `
+                            <div class="info-item">
+                                <h3>Experience Level</h3>
+                                <p>${client.experienceLevel}</p>
+                            </div>
+                            ` : ''}
+                            ${client?.fitnessGoals?.primaryGoal ? `
+                            <div class="info-item">
+                                <h3>Primary Goal</h3>
+                                <p>${client.fitnessGoals.primaryGoal}</p>
+                            </div>
+                            ` : ''}
+                            ${client?.fitnessGoals?.targetDate ? `
+                            <div class="info-item">
+                                <h3>Target Date</h3>
+                                <p>${formatDate(client.fitnessGoals.targetDate)}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            ${client?.fitnessData ? `
+            <div class="section">
+                <h2>Fitness Data</h2>
+                <div class="info-grid">
+                    ${client.fitnessData.currentWeight ? `
+                    <div class="info-item fitness-info">
+                        <h3>Current Weight</h3>
+                        <p>${client.fitnessData.currentWeight} kg</p>
+                    </div>
+                    ` : ''}
+                    ${client.fitnessData.targetWeight ? `
+                    <div class="info-item fitness-info">
+                        <h3>Target Weight</h3>
+                        <p>${client.fitnessData.targetWeight} kg</p>
+                    </div>
+                    ` : ''}
+                    ${client.fitnessData.height ? `
+                    <div class="info-item fitness-info">
+                        <h3>Height</h3>
+                        <p>${client.fitnessData.height} cm</p>
+                    </div>
+                    ` : ''}
+                    ${client.fitnessData.bodyFatPercentage ? `
+                    <div class="info-item fitness-info">
+                        <h3>Body Fat %</h3>
+                        <p>${client.fitnessData.bodyFatPercentage}%</p>
+                    </div>
+                    ` : ''}
+                    ${client.fitnessData.muscleMass ? `
+                    <div class="info-item fitness-info">
+                        <h3>Muscle Mass</h3>
+                        <p>${client.fitnessData.muscleMass} kg</p>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            ` : ''}
+
+            ${client?.medicalInfo ? `
+            <div class="section">
+                <h2>Medical Information</h2>
+                <div class="info-grid">
+                    ${client.medicalInfo.conditions && client.medicalInfo.conditions.length > 0 ? `
+                    <div class="info-item medical-info">
+                        <h3>Medical Conditions</h3>
+                        <p>${client.medicalInfo.conditions.join(', ')}</p>
+                    </div>
+                    ` : ''}
+                    ${client.medicalInfo.medications && client.medicalInfo.medications.length > 0 ? `
+                    <div class="info-item medical-info">
+                        <h3>Medications</h3>
+                        <p>${client.medicalInfo.medications.join(', ')}</p>
+                    </div>
+                    ` : ''}
+                    ${client.medicalInfo.allergies && client.medicalInfo.allergies.length > 0 ? `
+                    <div class="info-item medical-info">
+                        <h3>Allergies</h3>
+                        <p>${client.medicalInfo.allergies.join(', ')}</p>
+                    </div>
+                    ` : ''}
+                    ${client.medicalInfo.injuries && client.medicalInfo.injuries.length > 0 ? `
+                    <div class="info-item medical-info">
+                        <h3>Injuries</h3>
+                        <p>${client.medicalInfo.injuries.join(', ')}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            ` : ''}
+
+            <div class="section">
                 <h2>Daily Nutrition Targets</h2>
                 <div class="macros-grid">
                     <div class="macro-item">
@@ -101,15 +240,15 @@ const generateDietPlanHTML = (dietPlan) => {
                         <div class="macro-label">Calories</div>
                     </div>
                     <div class="macro-item">
-                        <div class="macro-value">${dietPlan.protein || 'N/A'}g</div>
+                        <div class="macro-value">${dietPlan.macronutrients?.protein || dietPlan.protein || 'N/A'}g</div>
                         <div class="macro-label">Protein</div>
                     </div>
                     <div class="macro-item">
-                        <div class="macro-value">${dietPlan.carbs || 'N/A'}g</div>
+                        <div class="macro-value">${dietPlan.macronutrients?.carbs || dietPlan.carbs || 'N/A'}g</div>
                         <div class="macro-label">Carbs</div>
                     </div>
                     <div class="macro-item">
-                        <div class="macro-value">${dietPlan.fat || 'N/A'}g</div>
+                        <div class="macro-value">${dietPlan.macronutrients?.fat || dietPlan.fat || 'N/A'}g</div>
                         <div class="macro-label">Fat</div>
                     </div>
                 </div>
@@ -151,51 +290,56 @@ const generateDietPlanHTML = (dietPlan) => {
             </div>
             ` : ''}
 
-            ${client?.fitnessData ? `
-            <div class="section">
-                <h2>Client Fitness Data</h2>
-                <div class="info-grid">
-                    ${client.fitnessData.currentWeight ? `
-                    <div class="info-item">
-                        <h3>Current Weight</h3>
-                        <p>${client.fitnessData.currentWeight} kg</p>
-                    </div>
-                    ` : ''}
-                    ${client.fitnessData.targetWeight ? `
-                    <div class="info-item">
-                        <h3>Target Weight</h3>
-                        <p>${client.fitnessData.targetWeight} kg</p>
-                    </div>
-                    ` : ''}
-                    ${client.fitnessData.height ? `
-                    <div class="info-item">
-                        <h3>Height</h3>
-                        <p>${client.fitnessData.height} cm</p>
-                    </div>
-                    ` : ''}
-                    ${client.fitnessData.bodyFatPercentage ? `
-                    <div class="info-item">
-                        <h3>Body Fat %</h3>
-                        <p>${client.fitnessData.bodyFatPercentage}%</p>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-            ` : ''}
-
             ${dietPlan.dailyMeals && dietPlan.dailyMeals.length > 0 ? `
             <div class="section">
                 <h2>Daily Meal Plan</h2>
                 ${dietPlan.dailyMeals.map(meal => `
                     <div class="meal">
-                        <div class="meal-header">${meal.mealType}</div>
+                        <div class="meal-header">${meal.mealType} - ${meal.calories || 0} calories</div>
                         <div class="meal-content">
-                            ${meal.foods && meal.foods.length > 0 ? meal.foods.map(food => `
-                                <div class="food-item">
-                                    <span class="food-name">${food.name}</span>
-                                    <span class="food-portion">${food.portion}</span>
+                            <h4 style="color: #dc2626; margin-bottom: 10px;">${meal.name}</h4>
+                            ${meal.description ? `<p style="color: #6b7280; margin-bottom: 10px; font-style: italic;">${meal.description}</p>` : ''}
+                            
+                            ${meal.foods && meal.foods.length > 0 ? `
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #374151; margin-bottom: 8px;">Foods:</h5>
+                                ${meal.foods.map(food => `
+                                    <div class="food-item">
+                                        <span class="food-name">${food.name}</span>
+                                        <span class="food-portion">${food.portion}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ` : ''}
+                            
+                            ${meal.ingredients ? `
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #374151; margin-bottom: 8px;">Ingredients:</h5>
+                                <p style="color: #6b7280; font-size: 0.9em;">${meal.ingredients}</p>
+                            </div>
+                            ` : ''}
+                            
+                            ${meal.instructions ? `
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #374151; margin-bottom: 8px;">Instructions:</h5>
+                                <p style="color: #6b7280; font-size: 0.9em;">${meal.instructions}</p>
+                            </div>
+                            ` : ''}
+                            
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px;">
+                                <div style="text-align: center; padding: 8px; background: #f8fafc; border-radius: 4px;">
+                                    <div style="font-weight: 600; color: #dc2626;">${meal.protein || 0}g</div>
+                                    <div style="font-size: 0.7em; color: #6b7280;">Protein</div>
                                 </div>
-                            `).join('') : '<p style="color: #6b7280; font-style: italic;">No foods specified</p>'}
+                                <div style="text-align: center; padding: 8px; background: #f8fafc; border-radius: 4px;">
+                                    <div style="font-weight: 600; color: #dc2626;">${meal.carbs || 0}g</div>
+                                    <div style="font-size: 0.7em; color: #6b7280;">Carbs</div>
+                                </div>
+                                <div style="text-align: center; padding: 8px; background: #f8fafc; border-radius: 4px;">
+                                    <div style="font-weight: 600; color: #dc2626;">${meal.fat || 0}g</div>
+                                    <div style="font-size: 0.7em; color: #6b7280;">Fat</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `).join('')}
