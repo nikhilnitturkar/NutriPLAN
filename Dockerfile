@@ -2,20 +2,24 @@
 FROM node:18-alpine
 
 # Install curl and Chrome dependencies for Puppeteer
-RUN apk add --no-cache curl \
+RUN apk add --no-cache \
+    curl \
     chromium \
     nss \
     freetype \
     freetype-dev \
     harfbuzz \
     ca-certificates \
-    ttf-freefont
+    ttf-freefont \
+    && rm -rf /var/cache/apk/*
 
 # Set Puppeteer to use installed Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV CHROME_PATH=/usr/bin/chromium-browser
 
-# Set working directory
+# Create app directory
 WORKDIR /app
 
 # Copy package files

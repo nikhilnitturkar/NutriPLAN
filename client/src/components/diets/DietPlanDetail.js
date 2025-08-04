@@ -65,19 +65,58 @@ const DietPlanDetail = () => {
         responseType: 'blob'
       });
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const clientName = client?.personalInfo?.name || 'client';
-      link.setAttribute('download', `diet-plan-${clientName}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('PDF exported successfully!');
+      // Check if the response is actually a PDF or HTML
+      const contentType = response.headers['content-type'];
+      const isPDF = contentType && contentType.includes('application/pdf');
+      const isHTML = contentType && contentType.includes('text/html');
+
+      if (isPDF) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        const clientName = client?.personalInfo?.name || 'client';
+        link.setAttribute('download', `diet-plan-${clientName}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        toast.success('PDF exported successfully!');
+      } else if (isHTML) {
+        // Handle HTML fallback
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
+        const link = document.createElement('a');
+        link.href = url;
+        const clientName = client?.personalInfo?.name || 'client';
+        link.setAttribute('download', `diet-plan-${clientName}.html`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        toast.success('HTML version exported (PDF generation failed)');
+      } else {
+        // Try to read error message from response
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const errorData = JSON.parse(reader.result);
+            toast.error(`Export failed: ${errorData.message || 'Unknown error'}`);
+          } catch {
+            toast.error('Export failed: Unable to generate PDF');
+          }
+        };
+        reader.readAsText(response.data);
+      }
     } catch (error) {
-      toast.error('Failed to export PDF');
+      console.error('Export error:', error);
+      if (error.response?.status === 500) {
+        toast.error('Server error: PDF generation failed');
+      } else if (error.response?.status === 404) {
+        toast.error('Diet plan not found');
+      } else {
+        toast.error('Failed to export PDF. Please try again.');
+      }
     } finally {
       setExporting(false);
     }

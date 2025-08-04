@@ -225,6 +225,8 @@ router.get('/:id/pdf', auth, async (req, res) => {
     const html = generateDietPlanHTML(dietPlan);
     
     try {
+      console.log('Starting PDF generation for diet plan:', dietPlan._id);
+      
       // Launch Puppeteer with Render-compatible settings
       const browser = await puppeteer.launch({
         headless: true,
@@ -236,13 +238,20 @@ router.get('/:id/pdf', auth, async (req, res) => {
           '--no-first-run',
           '--no-zygote',
           '--single-process',
-          '--disable-extensions'
+          '--disable-extensions',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding'
         ],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
       });
       
+      console.log('Browser launched successfully');
+      
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      console.log('Page content set, generating PDF...');
       
       // Generate PDF
       const pdf = await page.pdf({
@@ -256,6 +265,8 @@ router.get('/:id/pdf', auth, async (req, res) => {
         }
       });
       
+      console.log('PDF generated successfully, size:', pdf.length, 'bytes');
+      
       await browser.close();
       
       // Set response headers
@@ -265,10 +276,53 @@ router.get('/:id/pdf', auth, async (req, res) => {
       res.send(pdf);
     } catch (puppeteerError) {
       console.error('Puppeteer error:', puppeteerError);
-      // Fallback to HTML export
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
-      res.send(html);
+      console.error('Puppeteer error stack:', puppeteerError.stack);
+      
+      // Try alternative approach with different Chrome flags
+      try {
+        console.log('Trying alternative Puppeteer configuration...');
+        
+        const browser = await puppeteer.launch({
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-first-run',
+            '--disable-extensions'
+          ]
+        });
+        
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        
+        const pdf = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '0.5in',
+            right: '0.5in',
+            bottom: '0.5in',
+            left: '0.5in'
+          }
+        });
+        
+        await browser.close();
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
+        
+        res.send(pdf);
+      } catch (secondError) {
+        console.error('Second Puppeteer attempt failed:', secondError);
+        
+        // Final fallback to HTML export
+        console.log('Falling back to HTML export');
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
+        res.send(html);
+      }
     }
   } catch (error) {
     console.error('Error generating PDF:', error);
