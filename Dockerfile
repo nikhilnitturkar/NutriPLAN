@@ -11,9 +11,9 @@ WORKDIR /app
 COPY package*.json ./
 COPY client/package*.json ./client/
 
-# Install dependencies with legacy peer deps
-RUN npm ci --only=production --legacy-peer-deps
-RUN cd client && npm ci --only=production --legacy-peer-deps
+# Install dependencies with newer npm syntax
+RUN npm ci --omit=dev --legacy-peer-deps
+RUN cd client && npm ci --omit=dev --legacy-peer-deps
 
 # Copy source code
 COPY . .
