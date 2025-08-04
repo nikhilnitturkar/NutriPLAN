@@ -7,6 +7,292 @@ const puppeteer = require('puppeteer');
 
 const router = express.Router();
 
+// Function to generate HTML for PDF export
+const generateDietPlanHTML = (dietPlan) => {
+  const client = dietPlan.clientId;
+  const clientName = client?.personalInfo?.name || 'Client';
+  const clientEmail = client?.personalInfo?.email || 'N/A';
+  
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getGoalColor = (goal) => {
+    switch (goal) {
+      case 'Weight Loss': return '#dc2626';
+      case 'Muscle Gain': return '#9333ea';
+      case 'Maintenance': return '#16a34a';
+      default: return '#6b7280';
+    }
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Diet Plan - ${dietPlan.name}</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: white;
+            }
+            .header {
+                background: linear-gradient(135deg, #dc2626, #b91c1c);
+                color: white;
+                padding: 30px;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .header h1 {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+                font-weight: 700;
+            }
+            .header p {
+                font-size: 1.2em;
+                opacity: 0.9;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+            .section {
+                margin-bottom: 30px;
+                padding: 25px;
+                border: 2px solid #e5e7eb;
+                border-radius: 12px;
+                background: #fafafa;
+            }
+            .section h2 {
+                color: #dc2626;
+                font-size: 1.5em;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #dc2626;
+                padding-bottom: 8px;
+            }
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+            .info-item {
+                background: white;
+                padding: 15px;
+                border-radius: 8px;
+                border-left: 4px solid #dc2626;
+            }
+            .info-item h3 {
+                color: #dc2626;
+                font-size: 0.9em;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 5px;
+            }
+            .info-item p {
+                font-size: 1.1em;
+                font-weight: 600;
+                color: #333;
+            }
+            .goal-badge {
+                display: inline-block;
+                padding: 8px 16px;
+                border-radius: 20px;
+                color: white;
+                font-weight: 600;
+                font-size: 0.9em;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .meals-section {
+                margin-top: 30px;
+            }
+            .meal {
+                background: white;
+                margin-bottom: 20px;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e5e7eb;
+            }
+            .meal-header {
+                background: #dc2626;
+                color: white;
+                padding: 15px 20px;
+                font-weight: 600;
+                font-size: 1.1em;
+            }
+            .meal-content {
+                padding: 20px;
+            }
+            .food-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+                border-bottom: 1px solid #f3f4f6;
+            }
+            .food-item:last-child {
+                border-bottom: none;
+            }
+            .food-name {
+                font-weight: 500;
+                color: #333;
+            }
+            .food-portion {
+                color: #6b7280;
+                font-size: 0.9em;
+            }
+            .macros-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 15px;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #e5e7eb;
+            }
+            .macro-item {
+                text-align: center;
+                padding: 15px;
+                background: #f8fafc;
+                border-radius: 8px;
+            }
+            .macro-value {
+                font-size: 1.5em;
+                font-weight: 700;
+                color: #dc2626;
+                margin-bottom: 5px;
+            }
+            .macro-label {
+                font-size: 0.8em;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .footer {
+                margin-top: 40px;
+                padding: 20px;
+                background: #f8fafc;
+                border-radius: 8px;
+                text-align: center;
+                color: #6b7280;
+                font-size: 0.9em;
+            }
+            .footer strong {
+                color: #dc2626;
+            }
+            @media print {
+                .header {
+                    background: #dc2626 !important;
+                    -webkit-print-color-adjust: exact;
+                    color-adjust: exact;
+                }
+                .meal-header {
+                    background: #dc2626 !important;
+                    -webkit-print-color-adjust: exact;
+                    color-adjust: exact;
+                }
+                .goal-badge {
+                    background: ${getGoalColor(dietPlan.goal)} !important;
+                    -webkit-print-color-adjust: exact;
+                    color-adjust: exact;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>NutriPlan</h1>
+            <p>Personalized Nutrition Plan</p>
+        </div>
+        
+        <div class="container">
+            <div class="section">
+                <h2>Plan Overview</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <h3>Plan Name</h3>
+                        <p>${dietPlan.name}</p>
+                    </div>
+                    <div class="info-item">
+                        <h3>Client Name</h3>
+                        <p>${clientName}</p>
+                    </div>
+                    <div class="info-item">
+                        <h3>Goal</h3>
+                        <p><span class="goal-badge" style="background: ${getGoalColor(dietPlan.goal)}">${dietPlan.goal}</span></p>
+                    </div>
+                    <div class="info-item">
+                        <h3>Created Date</h3>
+                        <p>${formatDate(dietPlan.createdAt)}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Daily Nutrition Targets</h2>
+                <div class="macros-grid">
+                    <div class="macro-item">
+                        <div class="macro-value">${dietPlan.dailyCalories?.toLocaleString() || 'N/A'}</div>
+                        <div class="macro-label">Calories</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="macro-value">${dietPlan.protein || 'N/A'}g</div>
+                        <div class="macro-label">Protein</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="macro-value">${dietPlan.carbs || 'N/A'}g</div>
+                        <div class="macro-label">Carbs</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="macro-value">${dietPlan.fat || 'N/A'}g</div>
+                        <div class="macro-label">Fat</div>
+                    </div>
+                </div>
+            </div>
+
+            ${dietPlan.dailyMeals && dietPlan.dailyMeals.length > 0 ? `
+            <div class="section meals-section">
+                <h2>Daily Meal Plan</h2>
+                ${dietPlan.dailyMeals.map(meal => `
+                    <div class="meal">
+                        <div class="meal-header">${meal.mealType}</div>
+                        <div class="meal-content">
+                            ${meal.foods && meal.foods.length > 0 ? meal.foods.map(food => `
+                                <div class="food-item">
+                                    <span class="food-name">${food.name}</span>
+                                    <span class="food-portion">${food.portion}</span>
+                                </div>
+                            `).join('') : '<p style="color: #6b7280; font-style: italic;">No foods specified</p>'}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            ` : ''}
+
+            <div class="footer">
+                <p><strong>NutriPlan by A S T R A</strong> - Personalized nutrition planning for optimal health and fitness results.</p>
+                <p>Generated on ${formatDate(new Date())}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+};
+
 // @route   GET /api/diets
 // @desc    Get all diet plans for the authenticated trainer
 // @access  Private
