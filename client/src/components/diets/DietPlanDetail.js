@@ -11,6 +11,7 @@ const DietPlanDetail = () => {
   const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   const fetchDietPlan = useCallback(async () => {
     try {
@@ -60,10 +61,23 @@ const DietPlanDetail = () => {
 
   const handleExport = async () => {
     setExporting(true);
+    setExportProgress(0);
+    
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setExportProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+
     try {
       const response = await api.get(`/api/diets/${id}/pdf`, {
         responseType: 'blob'
       });
+
+      setExportProgress(100);
+      clearInterval(progressInterval);
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -80,6 +94,8 @@ const DietPlanDetail = () => {
       toast.error('Failed to export PDF');
     } finally {
       setExporting(false);
+      setExportProgress(0);
+      clearInterval(progressInterval);
     }
   };
 
@@ -116,86 +132,100 @@ const DietPlanDetail = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto bg-black min-h-screen">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/diet-plans"
-              className="p-2 text-gray-400 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Diet Plan Details</h1>
-              <p className="text-gray-400">Complete nutrition plan for {client?.personalInfo?.name}</p>
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/diet-plans"
+            className="p-2 text-gray-400 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Diet Plan Details</h1>
+            <p className="text-gray-400 text-sm sm:text-base">Complete nutrition plan for {client?.personalInfo?.name}</p>
           </div>
-          
-          <div className="flex gap-3">
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <Download className="w-5 h-5" />
-              {exporting ? 'Exporting...' : 'Export PDF'}
-            </button>
-            <Link
-              to={`/diet-plans/edit/${id}`}
-              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <Edit className="w-5 h-5" />
-              Edit Plan
-            </Link>
-            <button
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <Trash2 className="w-5 h-5" />
-              Delete
-            </button>
-          </div>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white px-4 sm:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl relative overflow-hidden"
+          >
+            {exporting ? (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 opacity-75"></div>
+                <div className="relative flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Exporting {Math.round(exportProgress)}%</span>
+                </div>
+                <div 
+                  className="absolute bottom-0 left-0 h-1 bg-white transition-all duration-300"
+                  style={{ width: `${exportProgress}%` }}
+                ></div>
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                Export PDF
+              </>
+            )}
+          </button>
+          <Link
+            to={`/diet-plans/edit/${id}`}
+            className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-4 sm:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <Edit className="w-5 h-5" />
+            Edit Plan
+          </Link>
+          <button
+            onClick={handleDelete}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <Trash2 className="w-5 h-5" />
+            Delete
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-8">
           {/* Client Information */}
-          <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-red-600 rounded-lg">
-                <User className="w-6 h-6 text-white" />
+          <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="p-2 sm:p-3 bg-red-600 rounded-lg">
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-white">Client Information</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white">Client Information</h2>
             </div>
             
             {client && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <h3 className="font-medium text-white mb-4">Personal Details</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
+                  <h3 className="font-medium text-white mb-3 sm:mb-4 text-sm sm:text-base">Personal Details</h3>
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Name:</span>
                       <span className="font-medium text-white">{client.personalInfo?.name}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Age:</span>
                       <span className="font-medium text-white">{client.personalInfo?.age} years</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Gender:</span>
                       <span className="font-medium text-white">{client.personalInfo?.gender}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Height:</span>
                       <span className="font-medium text-white">{client.fitnessData?.height} cm</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Current Weight:</span>
                       <span className="font-medium text-white">{client.fitnessData?.currentWeight} kg</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Target Weight:</span>
                       <span className="font-medium text-white">{client.fitnessData?.targetWeight || 'Not set'} kg</span>
                     </div>
@@ -203,28 +233,28 @@ const DietPlanDetail = () => {
                 </div>
                 
                 <div>
-                  <h3 className="font-medium text-white mb-4">Fitness Goals</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
+                  <h3 className="font-medium text-white mb-3 sm:mb-4 text-sm sm:text-base">Fitness Goals</h3>
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Primary Goal:</span>
                       <span className="font-medium text-white">{client.fitnessGoals?.primaryGoal}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Activity Level:</span>
                       <span className="font-medium text-white">{client.activityLevel}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-400">Experience Level:</span>
                       <span className="font-medium text-white">{client.experienceLevel}</span>
                     </div>
                     {client.fitnessData?.bodyFatPercentage && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm sm:text-base">
                         <span className="text-gray-400">Body Fat %:</span>
                         <span className="font-medium text-white">{client.fitnessData.bodyFatPercentage}%</span>
                       </div>
                     )}
                     {client.fitnessData?.muscleMass && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm sm:text-base">
                         <span className="text-gray-400">Muscle Mass:</span>
                         <span className="font-medium text-white">{client.fitnessData.muscleMass} kg</span>
                       </div>
@@ -236,35 +266,35 @@ const DietPlanDetail = () => {
           </div>
 
           {/* Diet Plan Information */}
-          <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-purple-600 rounded-lg">
-                <Target className="w-6 h-6 text-white" />
+          <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="p-2 sm:p-3 bg-purple-600 rounded-lg">
+                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-white">Diet Plan Information</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white">Diet Plan Information</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <h3 className="font-medium text-white mb-4">Plan Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
+                <h3 className="font-medium text-white mb-3 sm:mb-4 text-sm sm:text-base">Plan Details</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Plan Name:</span>
                     <span className="font-medium text-white">{dietPlan.name}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Goal:</span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getGoalColor(dietPlan.goal)}`}>
+                    <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border ${getGoalColor(dietPlan.goal)}`}>
                       {dietPlan.goal}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Daily Calories:</span>
                     <span className="font-medium text-white">{dietPlan.dailyCalories?.toLocaleString()} cal</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Status:</span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
                       dietPlan.isActive 
                         ? 'bg-green-900/20 text-green-400 border border-green-800' 
                         : 'bg-gray-900/20 text-gray-400 border border-gray-800'
@@ -272,7 +302,7 @@ const DietPlanDetail = () => {
                       {dietPlan.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Created:</span>
                     <span className="font-medium text-white">
                       {new Date(dietPlan.createdAt).toLocaleDateString()}
@@ -282,17 +312,17 @@ const DietPlanDetail = () => {
               </div>
               
               <div>
-                <h3 className="font-medium text-white mb-4">Macronutrients</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
+                <h3 className="font-medium text-white mb-3 sm:mb-4 text-sm sm:text-base">Macronutrients</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Protein:</span>
                     <span className="font-medium text-white">{dietPlan.macronutrients?.protein || dietPlan.protein || 0}g</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Carbohydrates:</span>
                     <span className="font-medium text-white">{dietPlan.macronutrients?.carbs || dietPlan.carbs || 0}g</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-400">Fat:</span>
                     <span className="font-medium text-white">{dietPlan.macronutrients?.fat || dietPlan.fat || 0}g</span>
                   </div>
@@ -302,30 +332,30 @@ const DietPlanDetail = () => {
           </div>
 
           {/* Daily Meals */}
-          <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-green-600 rounded-lg">
-                <Clock className="w-6 h-6 text-white" />
+          <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="p-2 sm:p-3 bg-green-600 rounded-lg">
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-white">Daily Meals</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white">Daily Meals</h2>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {dietPlan.dailyMeals?.map((meal, index) => (
-                <div key={index} className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-red-400">{meal.mealType}</h3>
-                    <span className="text-sm text-gray-400">{meal.calories || 0} cal</span>
+                <div key={index} className="bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-700">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <h3 className="font-semibold text-red-400 text-sm sm:text-base">{meal.mealType}</h3>
+                    <span className="text-xs sm:text-sm text-gray-400">{meal.calories || 0} cal</span>
                   </div>
                   
-                  <div className="mb-3">
-                    <h4 className="font-medium text-white mb-1">{meal.name}</h4>
+                  <div className="mb-2 sm:mb-3">
+                    <h4 className="font-medium text-white mb-1 text-sm sm:text-base">{meal.name}</h4>
                     {meal.description && (
-                      <p className="text-gray-400 text-sm">{meal.description}</p>
+                      <p className="text-gray-400 text-xs sm:text-sm">{meal.description}</p>
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
                     <div className="text-center">
                       <div className="text-gray-400">Protein</div>
                       <div className="font-medium text-white">{meal.protein || 0}g</div>
@@ -341,16 +371,16 @@ const DietPlanDetail = () => {
                   </div>
                   
                   {meal.ingredients && (
-                    <div className="mt-3 pt-3 border-t border-gray-700">
-                      <h5 className="text-sm font-medium text-gray-300 mb-1">Ingredients:</h5>
-                      <p className="text-gray-400 text-sm">{meal.ingredients}</p>
+                    <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-700">
+                      <h5 className="text-xs sm:text-sm font-medium text-gray-300 mb-1">Ingredients:</h5>
+                      <p className="text-gray-400 text-xs sm:text-sm">{meal.ingredients}</p>
                     </div>
                   )}
                   
                   {meal.instructions && (
-                    <div className="mt-3 pt-3 border-t border-gray-700">
-                      <h5 className="text-sm font-medium text-gray-300 mb-1">Instructions:</h5>
-                      <p className="text-gray-400 text-sm">{meal.instructions}</p>
+                    <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-700">
+                      <h5 className="text-xs sm:text-sm font-medium text-gray-300 mb-1">Instructions:</h5>
+                      <p className="text-gray-400 text-xs sm:text-sm">{meal.instructions}</p>
                     </div>
                   )}
                 </div>
@@ -360,12 +390,12 @@ const DietPlanDetail = () => {
 
           {/* Additional Information */}
           {(dietPlan.restrictions || dietPlan.supplements || dietPlan.hydration) && (
-            <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-yellow-600 rounded-lg">
-                  <AlertTriangle className="w-6 h-6 text-white" />
+            <div className="bg-gray-900/95 rounded-2xl shadow-xl border border-gray-800 p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <div className="p-2 sm:p-3 bg-yellow-600 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h2 className="text-xl font-semibold text-white">Additional Information</h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-white">Additional Information</h2>
               </div>
               
               <div className="space-y-4">
