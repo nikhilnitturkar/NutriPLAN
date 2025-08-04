@@ -11,26 +11,15 @@ const DietPlans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState(0);
-  const [exportingPlanId, setExportingPlanId] = useState(null);
   
   // Get clientId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const selectedClientId = urlParams.get('clientId');
-  const showModal = urlParams.get('showModal');
 
   useEffect(() => {
     fetchDietPlans();
     fetchClients();
   }, []);
-
-  // Auto-open modal if clientId is provided in URL or showModal is true
-  useEffect(() => {
-    if (selectedClientId || showModal === 'true') {
-      setShowCreateModal(true);
-    }
-  }, [selectedClientId, showModal]);
 
   const fetchDietPlans = async () => {
     try {
@@ -65,25 +54,10 @@ const DietPlans = () => {
   };
 
   const handleExport = async (plan) => {
-    setExporting(true);
-    setExportingPlanId(plan._id);
-    setExportProgress(0);
-    
-    // Simulate progress updates
-    const progressInterval = setInterval(() => {
-      setExportProgress(prev => {
-        if (prev >= 90) return prev;
-        return prev + Math.random() * 15;
-      });
-    }, 200);
-
     try {
       const response = await api.get(`/api/diets/${plan._id}/pdf`, {
         responseType: 'blob'
       });
-
-      setExportProgress(100);
-      clearInterval(progressInterval);
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -98,11 +72,6 @@ const DietPlans = () => {
       toast.success('PDF exported successfully!');
     } catch (error) {
       toast.error('Failed to export PDF');
-    } finally {
-      setExporting(false);
-      setExportingPlanId(null);
-      setExportProgress(0);
-      clearInterval(progressInterval);
     }
   };
 
@@ -134,15 +103,15 @@ const DietPlans = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-8">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 via-red-900 to-black p-4 sm:p-8">
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 via-red-900 to-black p-8">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">Diet Plans</h1>
-              <p className="text-gray-300 text-sm sm:text-lg">Create and manage personalized nutrition plans for your clients</p>
+              <h1 className="text-4xl font-bold text-white mb-2">Diet Plans</h1>
+              <p className="text-gray-300 text-lg">Create and manage personalized nutrition plans for your clients</p>
             </div>
             <div className="hidden md:block">
               <div className="w-24 h-24 bg-red-600/20 rounded-full flex items-center justify-center backdrop-blur-sm">
@@ -154,84 +123,84 @@ const DietPlans = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
-        <div className="bg-gray-900 rounded-xl p-3 sm:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-400 mb-1">Total Plans</p>
-              <p className="text-xl sm:text-3xl font-bold text-white">{dietPlans.length}</p>
-              <p className="text-xs sm:text-sm text-red-400 mt-1">+5% from last month</p>
+              <p className="text-sm font-medium text-gray-400 mb-1">Total Plans</p>
+              <p className="text-3xl font-bold text-white">{dietPlans.length}</p>
+              <p className="text-sm text-red-400 mt-1">+5% from last month</p>
             </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Target className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Target className="w-6 h-6 text-white" />
             </div>
           </div>
         </div>
         
-        <div className="bg-gray-900 rounded-xl p-3 sm:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-400 mb-1">Active Clients</p>
-              <p className="text-xl sm:text-3xl font-bold text-white">{clients.length}</p>
-              <p className="text-xs sm:text-sm text-green-400 mt-1">+8% from last month</p>
+              <p className="text-sm font-medium text-gray-400 mb-1">Active Clients</p>
+              <p className="text-3xl font-bold text-white">{clients.length}</p>
+              <p className="text-sm text-green-400 mt-1">+8% from last month</p>
             </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Users className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Users className="w-6 h-6 text-white" />
             </div>
           </div>
         </div>
         
-        <div className="bg-gray-900 rounded-xl p-3 sm:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-400 mb-1">Weight Loss</p>
-              <p className="text-xl sm:text-3xl font-bold text-white">
+              <p className="text-sm font-medium text-gray-400 mb-1">Weight Loss</p>
+              <p className="text-3xl font-bold text-white">
                 {dietPlans.filter(p => p.goal === 'Weight Loss').length}
               </p>
-              <p className="text-xs sm:text-sm text-red-400 mt-1">+12% from last month</p>
+              <p className="text-sm text-red-400 mt-1">+12% from last month</p>
             </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Target className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Target className="w-6 h-6 text-white" />
             </div>
           </div>
         </div>
         
-        <div className="bg-gray-900 rounded-xl p-3 sm:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-400 mb-1">Muscle Gain</p>
-              <p className="text-xl sm:text-3xl font-bold text-white">
+              <p className="text-sm font-medium text-gray-400 mb-1">Muscle Gain</p>
+              <p className="text-3xl font-bold text-white">
                 {dietPlans.filter(p => p.goal === 'Muscle Gain').length}
               </p>
-              <p className="text-xs sm:text-sm text-purple-400 mt-1">+15% from last month</p>
+              <p className="text-sm text-purple-400 mt-1">+15% from last month</p>
             </div>
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Sparkles className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-gray-900 rounded-xl p-4 sm:p-6 border border-gray-800">
+      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search by client name or goal..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full pl-12 pr-4 py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
               />
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex gap-4">
             <select
               value={filterGoal}
               onChange={(e) => setFilterGoal(e.target.value)}
-              className="px-4 py-3 sm:py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
+              className="px-6 py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
             >
               <option value="all">All Goals</option>
               <option value="Weight Loss">Weight Loss</option>
@@ -240,28 +209,38 @@ const DietPlans = () => {
             </select>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
+              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              Create Plan
+              <Plus className="w-5 h-5" />
+              Create New Plan
             </button>
+            {selectedClientId && (
+              <div className="mt-4 p-4 bg-red-900/20 border border-red-700/30 rounded-lg">
+                <div className="flex items-center">
+                  <Info className="w-5 h-5 text-red-400 mr-2" />
+                  <span className="text-sm text-red-300">
+                    Creating diet plan for: {clients.find(c => c._id === selectedClientId)?.personalInfo?.name || 'Selected Client'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Diet Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPlans.map((plan) => (
           <div key={plan._id} className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 hover:border-gray-700 transition-all duration-300 group">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-start justify-between mb-4 sm:mb-6">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">
+                  <h3 className="text-xl font-semibold text-white mb-2">
                     {getClientName(plan)}
                   </h3>
-                  <p className="text-xs sm:text-sm text-gray-400">{plan.goal}</p>
+                  <p className="text-sm text-gray-400">{plan.goal}</p>
                 </div>
-                <div className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs font-medium ${
+                <div className={`px-4 py-2 rounded-full text-xs font-medium ${
                   plan.goal === 'Weight Loss' ? 'bg-red-900/30 text-red-400 border border-red-700/30' :
                   plan.goal === 'Muscle Gain' ? 'bg-purple-900/30 text-purple-400 border border-purple-700/30' :
                   'bg-green-900/30 text-green-400 border border-green-700/30'
@@ -270,24 +249,24 @@ const DietPlans = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 sm:space-y-4 mb-4 sm:mb-6">
-                <div className="flex items-center justify-between text-xs sm:text-sm">
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Daily Calories:</span>
                   <span className="font-semibold text-white">{plan.dailyCalories} cal</span>
                 </div>
-                <div className="flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Protein:</span>
                   <span className="font-semibold text-white">{plan.protein}g</span>
                 </div>
-                <div className="flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Carbs:</span>
                   <span className="font-semibold text-white">{plan.carbs}g</span>
                 </div>
-                <div className="flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Fat:</span>
                   <span className="font-semibold text-white">{plan.fat}g</span>
                 </div>
-                <div className="flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Meals:</span>
                   <span className="font-semibold text-white">{plan.dailyMeals?.length || 0} meals</span>
                 </div>
@@ -296,45 +275,28 @@ const DietPlans = () => {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => handleExport(plan)}
-                  disabled={exporting && exportingPlanId === plan._id}
-                  className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-3 sm:px-4 py-3 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
-                  {exporting && exportingPlanId === plan._id ? (
-                    <>
-                      <div className="absolute inset-0 bg-green-600 opacity-75"></div>
-                      <div className="relative flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                        <span className="text-xs">{Math.round(exportProgress)}%</span>
-                      </div>
-                      <div 
-                        className="absolute bottom-0 left-0 h-1 bg-white transition-all duration-300"
-                        style={{ width: `${exportProgress}%` }}
-                      ></div>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Export PDF
-                    </>
-                  )}
+                  <Download className="w-4 h-4" />
+                  Export PDF
                 </button>
                 <Link
                   to={`/diet-plans/${plan._id}`}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-3 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   <Eye className="w-4 h-4" />
                   View
                 </Link>
                 <Link
                   to={`/diet-plans/edit/${plan._id}`}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-3 sm:px-4 py-3 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   <Edit className="w-4 h-4" />
                   Edit
                 </Link>
                 <button
                   onClick={() => handleDelete(plan._id)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-3 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
