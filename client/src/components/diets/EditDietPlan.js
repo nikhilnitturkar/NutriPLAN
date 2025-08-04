@@ -190,7 +190,7 @@ const EditDietPlan = () => {
 
       await api.put(`/api/diets/${id}`, data);
       toast.success('Diet plan updated successfully!');
-      navigate(`/diet-plans/${id}`);
+      navigate(`/diets/${id}`);
     } catch (error) {
       console.error('Error updating diet plan:', error);
       toast.error('Failed to update diet plan');
