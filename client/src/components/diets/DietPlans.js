@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
 import api from '../../utils/api';
 import { 
   Plus, 
@@ -28,7 +27,6 @@ const DietPlans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(false);
   const [exportingPlan, setExportingPlan] = useState(null);
   const [exportProgress, setExportProgress] = useState(0);
 
