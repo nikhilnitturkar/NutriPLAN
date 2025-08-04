@@ -13,7 +13,6 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [showTestButton, setShowTestButton] = useState(true);
 
   useEffect(() => {
     fetchNotifications();

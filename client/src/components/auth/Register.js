@@ -57,7 +57,7 @@ const Register = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (formData.phone && !/^[\+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/\s/g, ''))) {
+    if (formData.phone && !/^[+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/\s/g, ''))) {
       newErrors.phone = 'Phone number is invalid';
     }
 

@@ -4,7 +4,6 @@ import {
   Plus, 
   Search, 
   Filter, 
-  Edit, 
   Trash2, 
   Eye,
   Users,

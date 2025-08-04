@@ -44,7 +44,7 @@ const ClientDetail = () => {
     if (id) {
       fetchClientData();
     }
-  }, [id]);
+  }, [id, fetchClientData]);
 
   const getStatusBadge = (status) => {
     const statusClasses = {

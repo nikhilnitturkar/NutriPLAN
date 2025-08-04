@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Settings as SettingsIcon,
-  LogOut,
-  Download,
-  Trash2,
   Eye,
   EyeOff,
   Edit,
@@ -17,9 +13,6 @@ import api from '../../utils/api';
 
 const Settings = ({ isOpen, onClose }) => {
   const { user, logout, updateUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
