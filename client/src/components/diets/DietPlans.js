@@ -89,6 +89,226 @@ const DietPlans = () => {
     setShowEditModal(true);
   };
 
+  // Edit Diet Plan Modal Component
+  const EditDietPlanModal = ({ dietPlan, clients, onClose, onSuccess }) => {
+    const [formData, setFormData] = useState({
+      name: dietPlan.name || '',
+      clientId: dietPlan.clientId?._id || dietPlan.clientId || '',
+      goal: dietPlan.goal || 'Weight Loss',
+      dailyCalories: dietPlan.dailyCalories || '',
+      description: dietPlan.description || '',
+      restrictions: dietPlan.restrictions || '',
+      supplements: dietPlan.supplements || '',
+      hydration: dietPlan.hydration || '',
+      isActive: dietPlan.isActive !== undefined ? dietPlan.isActive : true,
+      dailyMeals: dietPlan.dailyMeals || []
+    });
+    const [saving, setSaving] = useState(false);
+
+    const handleInputChange = (e) => {
+      const { name, value, type, checked } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setSaving(true);
+      
+      try {
+        await api.put(`/api/diets/${dietPlan._id}`, formData);
+        toast.success('Diet plan updated successfully!');
+        onSuccess();
+      } catch (error) {
+        console.error('Error updating diet plan:', error);
+        toast.error('Failed to update diet plan');
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-800">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Edit Diet Plan</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Plan Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Enter plan name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Client
+                </label>
+                <select
+                  name="clientId"
+                  value={formData.clientId}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select a client</option>
+                  {clients.map(client => (
+                    <option key={client._id} value={client._id}>
+                      {client.personalInfo.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Goal
+                </label>
+                <select
+                  name="goal"
+                  value={formData.goal}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                >
+                  <option value="Weight Loss">Weight Loss</option>
+                  <option value="Muscle Gain">Muscle Gain</option>
+                  <option value="Maintenance">Maintenance</option>
+                  <option value="Performance">Performance</option>
+                  <option value="General Health">General Health</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Daily Calories
+                </label>
+                <input
+                  type="number"
+                  name="dailyCalories"
+                  value={formData.dailyCalories}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Enter daily calories"
+                  required
+                  min="800"
+                  max="5000"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows="3"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Enter plan description"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Dietary Restrictions
+              </label>
+              <textarea
+                name="restrictions"
+                value={formData.restrictions}
+                onChange={handleInputChange}
+                rows="2"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Enter dietary restrictions"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Recommended Supplements
+              </label>
+              <textarea
+                name="supplements"
+                value={formData.supplements}
+                onChange={handleInputChange}
+                rows="2"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Enter recommended supplements"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Hydration Guidelines
+              </label>
+              <textarea
+                name="hydration"
+                value={formData.hydration}
+                onChange={handleInputChange}
+                rows="2"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Enter hydration guidelines"
+              />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleInputChange}
+                className="w-4 h-4 text-red-600 bg-gray-800 border-gray-700 rounded focus:ring-red-500 focus:ring-2"
+              />
+              <label className="ml-2 text-sm text-gray-300">
+                Active Plan
+              </label>
+            </div>
+
+            <div className="flex gap-3 pt-6 border-t border-gray-800">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-6 py-3 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg font-medium transition-all disabled:opacity-50"
+              >
+                {saving ? 'Updating...' : 'Update Plan'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   const getClientName = (dietPlan) => {
     // Use populated client data from the diet plan
     if (dietPlan.clientId && typeof dietPlan.clientId === 'object') {
@@ -117,128 +337,53 @@ const DietPlans = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 p-4 lg:p-8">
       {/* Header */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 via-red-900 to-black p-8">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Diet Plans</h1>
-              <p className="text-gray-300 text-lg">Create and manage personalized nutrition plans for your clients</p>
-            </div>
-            <div className="hidden md:block">
-              <div className="w-24 h-24 bg-red-600/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Target className="w-12 h-12 text-red-400" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-white">Diet Plans</h1>
+          <p className="text-gray-400 mt-1">Manage and create personalized nutrition plans</p>
+        </div>
+        
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search plans..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent w-full sm:w-64"
+            />
+          </div>
+          <select
+            value={filterGoal}
+            onChange={(e) => setFilterGoal(e.target.value)}
+            className="px-6 py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+          >
+            <option value="all">All Goals</option>
+            <option value="Weight Loss">Weight Loss</option>
+            <option value="Muscle Gain">Muscle Gain</option>
+            <option value="Maintenance">Maintenance</option>
+          </select>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl"
+          >
+            <Plus className="w-5 h-5" />
+            Create New Plan
+          </button>
+          {selectedClientId && (
+            <div className="mt-4 p-4 bg-red-900/20 border border-red-700/30 rounded-lg">
+              <div className="flex items-center">
+                <Info className="w-5 h-5 text-red-400 mr-2" />
+                <span className="text-sm text-red-300">
+                  Creating diet plan for: {clients.find(c => c._id === selectedClientId)?.personalInfo?.name || 'Selected Client'}
+                </span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400 mb-1">Total Plans</p>
-              <p className="text-3xl font-bold text-white">{dietPlans.length}</p>
-              <p className="text-sm text-red-400 mt-1">+5% from last month</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Target className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400 mb-1">Active Clients</p>
-              <p className="text-3xl font-bold text-white">{clients.length}</p>
-              <p className="text-sm text-green-400 mt-1">+8% from last month</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400 mb-1">Weight Loss</p>
-              <p className="text-3xl font-bold text-white">
-                {dietPlans.filter(p => p.goal === 'Weight Loss').length}
-              </p>
-              <p className="text-sm text-red-400 mt-1">+12% from last month</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Target className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400 mb-1">Muscle Gain</p>
-              <p className="text-3xl font-bold text-white">
-                {dietPlans.filter(p => p.goal === 'Muscle Gain').length}
-              </p>
-              <p className="text-sm text-purple-400 mt-1">+15% from last month</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by client name or goal..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-              />
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <select
-              value={filterGoal}
-              onChange={(e) => setFilterGoal(e.target.value)}
-              className="px-6 py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-            >
-              <option value="all">All Goals</option>
-              <option value="Weight Loss">Weight Loss</option>
-              <option value="Muscle Gain">Muscle Gain</option>
-              <option value="Maintenance">Maintenance</option>
-            </select>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              <Plus className="w-5 h-5" />
-              Create New Plan
-            </button>
-            {selectedClientId && (
-              <div className="mt-4 p-4 bg-red-900/20 border border-red-700/30 rounded-lg">
-                <div className="flex items-center">
-                  <Info className="w-5 h-5 text-red-400 mr-2" />
-                  <span className="text-sm text-red-300">
-                    Creating diet plan for: {clients.find(c => c._id === selectedClientId)?.personalInfo?.name || 'Selected Client'}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -322,32 +467,50 @@ const DietPlans = () => {
       </div>
 
       {filteredPlans.length === 0 && !loading && (
-        <div className="text-center py-16">
-          <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Target className="w-12 h-12 text-gray-500" />
-          </div>
-          <h3 className="text-2xl font-semibold text-white mb-3">No diet plans found</h3>
-          <p className="text-gray-400 mb-8 text-lg">Create your first diet plan to get started</p>
+        <div className="text-center py-12">
+          <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-white mb-2">No diet plans found</h3>
+          <p className="text-gray-400 mb-6">Create your first diet plan to get started.</p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-3 mx-auto transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 inline mr-2" />
             Create First Plan
           </button>
         </div>
       )}
 
-      {/* Create Plan Modal */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+        </div>
+      )}
+
       {showCreateModal && (
         <CreateDietPlanModal
           clients={clients}
-          selectedClientId={selectedClientId}
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);
             fetchDietPlans();
-            toast.success('Diet plan created successfully!');
+          }}
+          selectedClientId={selectedClientId}
+        />
+      )}
+
+      {showEditModal && editingDietPlan && (
+        <EditDietPlanModal
+          dietPlan={editingDietPlan}
+          clients={clients}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingDietPlan(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setEditingDietPlan(null);
+            fetchDietPlans();
           }}
         />
       )}
@@ -1332,242 +1495,21 @@ const CreateDietPlanModal = ({ clients, onClose, onSuccess, selectedClientId = n
         </div>
       )}
 
-      {showEditModal && editingDietPlan && (
-        <EditDietPlanModal
-          dietPlan={editingDietPlan}
-          clients={clients}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingDietPlan(null);
-          }}
-          onSuccess={() => {
-            setShowEditModal(false);
-            setEditingDietPlan(null);
-            fetchDietPlans();
-          }}
-        />
-      )}
+      {/* Edit Diet Plan Modal Component */}
+      <EditDietPlanModal
+        dietPlan={editingDietPlan}
+        clients={clients}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingDietPlan(null);
+        }}
+        onSuccess={() => {
+          setShowEditModal(false);
+          setEditingDietPlan(null);
+          fetchDietPlans();
+        }}
+      />
     </>
-  );
-};
-
-// Edit Diet Plan Modal Component
-const EditDietPlanModal = ({ dietPlan, clients, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    name: dietPlan.name || '',
-    clientId: dietPlan.clientId?._id || dietPlan.clientId || '',
-    goal: dietPlan.goal || 'Weight Loss',
-    dailyCalories: dietPlan.dailyCalories || '',
-    description: dietPlan.description || '',
-    restrictions: dietPlan.restrictions || '',
-    supplements: dietPlan.supplements || '',
-    hydration: dietPlan.hydration || '',
-    isActive: dietPlan.isActive !== undefined ? dietPlan.isActive : true,
-    dailyMeals: dietPlan.dailyMeals || []
-  });
-  const [saving, setSaving] = useState(false);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    
-    try {
-      await api.put(`/api/diets/${dietPlan._id}`, formData);
-      toast.success('Diet plan updated successfully!');
-      onSuccess();
-    } catch (error) {
-      console.error('Error updating diet plan:', error);
-      toast.error('Failed to update diet plan');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-800">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">Edit Diet Plan</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Plan Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Enter plan name"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Client
-              </label>
-              <select
-                name="clientId"
-                value={formData.clientId}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select a client</option>
-                {clients.map(client => (
-                  <option key={client._id} value={client._id}>
-                    {client.personalInfo.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Goal
-              </label>
-              <select
-                name="goal"
-                value={formData.goal}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                required
-              >
-                <option value="Weight Loss">Weight Loss</option>
-                <option value="Muscle Gain">Muscle Gain</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Performance">Performance</option>
-                <option value="General Health">General Health</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Daily Calories
-              </label>
-              <input
-                type="number"
-                name="dailyCalories"
-                value={formData.dailyCalories}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Enter daily calories"
-                required
-                min="800"
-                max="5000"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows="3"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter plan description"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Dietary Restrictions
-            </label>
-            <textarea
-              name="restrictions"
-              value={formData.restrictions}
-              onChange={handleInputChange}
-              rows="2"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter dietary restrictions"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Recommended Supplements
-            </label>
-            <textarea
-              name="supplements"
-              value={formData.supplements}
-              onChange={handleInputChange}
-              rows="2"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter recommended supplements"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Hydration Guidelines
-            </label>
-            <textarea
-              name="hydration"
-              value={formData.hydration}
-              onChange={handleInputChange}
-              rows="2"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter hydration guidelines"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="isActive"
-              checked={formData.isActive}
-              onChange={handleInputChange}
-              className="w-4 h-4 text-red-600 bg-gray-800 border-gray-700 rounded focus:ring-red-500 focus:ring-2"
-            />
-            <label className="ml-2 text-sm text-gray-300">
-              Active Plan
-            </label>
-          </div>
-
-          <div className="flex gap-3 pt-6 border-t border-gray-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg font-medium transition-all disabled:opacity-50"
-            >
-              {saving ? 'Updating...' : 'Update Plan'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   );
 };
 

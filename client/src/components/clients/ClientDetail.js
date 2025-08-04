@@ -19,6 +19,7 @@ const ClientDetail = () => {
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
   const [dietPlans, setDietPlans] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showEditModal, setShowEditModal] = useState(false);
@@ -44,9 +45,19 @@ const ClientDetail = () => {
     }
   }, [id]);
 
+  const fetchClients = async () => {
+    try {
+      const response = await api.get('/api/clients');
+      setClients(response.data);
+    } catch (error) {
+      console.error('Failed to load clients');
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchClientData();
+      fetchClients();
     }
   }, [id, fetchClientData]);
 
