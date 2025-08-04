@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, Activity, Target } from 'lucide-react';
 
@@ -11,9 +11,7 @@ const AddClient = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    watch,
-    setValue
+    formState: { errors }
   } = useForm();
 
   const onSubmit = async (data) => {
@@ -59,13 +57,13 @@ const AddClient = () => {
           injuries: data.injuries ? data.injuries.split(',').map(i => i.trim()) : [],
           restrictions: data.restrictions ? data.restrictions.split(',').map(r => r.trim()) : []
         },
-        activityLevel: data.activityLevel,
-        experienceLevel: data.experienceLevel,
-        status: data.status,
+        activityLevel: data.activityLevel || undefined,
+        experienceLevel: data.experienceLevel || undefined,
+        status: data.status || undefined,
         notes: data.notes || undefined
       };
 
-      await axios.post('/api/clients', clientData);
+      await api.post('/api/clients', clientData);
       toast.success('Client added successfully!');
       navigate('/clients');
     } catch (error) {

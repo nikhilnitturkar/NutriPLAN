@@ -55,7 +55,10 @@ router.post('/', [
   body('personalInfo.gender').isIn(['male', 'female', 'other']).withMessage('Invalid gender'),
   body('fitnessData.currentWeight').isFloat({ min: 20, max: 500 }).withMessage('Weight must be between 20 and 500 kg'),
   body('fitnessData.height').isFloat({ min: 100, max: 250 }).withMessage('Height must be between 100 and 250 cm'),
-  body('fitnessGoals.primaryGoal').isIn(['weight_loss', 'muscle_gain', 'endurance', 'strength', 'general_fitness', 'sports_performance']).withMessage('Invalid primary goal')
+  body('fitnessGoals.primaryGoal').isIn(['weight_loss', 'muscle_gain', 'endurance', 'strength', 'general_fitness', 'sports_performance']).withMessage('Invalid primary goal'),
+  body('activityLevel').optional().isIn(['sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extremely_active']).withMessage('Invalid activity level'),
+  body('experienceLevel').optional().isIn(['beginner', 'intermediate', 'advanced']).withMessage('Invalid experience level'),
+  body('status').optional().isIn(['active', 'inactive', 'on_hold']).withMessage('Invalid status')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -63,8 +66,14 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Filter out empty strings for optional fields
+    const filteredData = { ...req.body };
+    if (filteredData.activityLevel === '') delete filteredData.activityLevel;
+    if (filteredData.experienceLevel === '') delete filteredData.experienceLevel;
+    if (filteredData.status === '') delete filteredData.status;
+
     const clientData = {
-      ...req.body,
+      ...filteredData,
       trainerId: req.trainer._id
     };
 

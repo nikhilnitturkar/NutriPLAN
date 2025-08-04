@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Target, 
@@ -7,94 +7,116 @@ import {
   Activity,
   Plus,
   ArrowUpRight,
-  BarChart3,
-  Calendar,
-  Clock,
-  CheckCircle,
-  AlertCircle
+  Clock
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useDarkMode } from '../../contexts/DarkModeContext';
+import api from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalClients: 0,
     totalDietPlans: 0,
     activePlans: 0,
-    successRate: 0
+    retentionRate: 0
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getTimeAgo = (date) => {
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch clients
+        const clientsResponse = await api.get('/api/clients');
+        const clients = clientsResponse.data;
+
+        // Fetch diet plans
+        const dietsResponse = await api.get('/api/diets');
+        const diets = dietsResponse.data;
+
+        setStats({
+          totalClients: clients.length,
+          totalDietPlans: diets.length,
+          activePlans: diets.filter(plan => plan.isActive).length,
+          retentionRate: clients.length > 0 ? Math.round((clients.filter(client => client.status === 'active').length / clients.length) * 100) : 0
+        });
+
+        // Generate real recent activity based on actual data
+        const recentActivity = [];
+        
+        // Add recent clients
+        const recentClients = clients
+          .sort((a, b) => new Date(b.createdAt || b.joinDate) - new Date(a.createdAt || a.joinDate))
+          .slice(0, 2);
+        
+        recentClients.forEach(client => {
+          const joinDate = new Date(client.createdAt || client.joinDate);
+          const timeAgo = getTimeAgo(joinDate);
+          recentActivity.push({
+            id: `client-${client._id}`,
+            type: 'client_added',
+            title: 'New Client Added',
+            description: `${client.personalInfo.name} joined your program`,
+            time: timeAgo,
+            icon: Users,
+            color: 'blue'
+          });
+        });
+
+        // Add recent diet plans
+        const recentDiets = diets
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 2);
+        
+        recentDiets.forEach(diet => {
+          const createDate = new Date(diet.createdAt);
+          const timeAgo = getTimeAgo(createDate);
+          recentActivity.push({
+            id: `diet-${diet._id}`,
+            type: 'diet_plan_created',
+            title: 'Diet Plan Created',
+            description: `${diet.name} plan created`,
+            time: timeAgo,
+            icon: Target,
+            color: 'green'
+          });
+        });
+
+        // Sort by date and take top 4
+        const sortedActivity = recentActivity
+          .sort((a, b) => {
+            const timeA = a.time.includes('minute') ? 1 : a.time.includes('hour') ? 2 : 3;
+            const timeB = b.time.includes('minute') ? 1 : b.time.includes('hour') ? 2 : 3;
+            return timeA - timeB;
+          })
+          .slice(0, 4);
+
+        setRecentActivity(sortedActivity);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDashboardData();
   }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch clients
-      const clientsResponse = await fetch('/api/clients');
-      const clients = await clientsResponse.json();
-
-      // Fetch diet plans
-      const dietsResponse = await fetch('/api/diets');
-      const diets = await dietsResponse.json();
-
-      setStats({
-        totalClients: clients.length,
-        totalDietPlans: diets.length,
-        activePlans: diets.filter(plan => plan.isActive).length,
-        successRate: Math.round((diets.filter(plan => plan.isActive).length / Math.max(diets.length, 1)) * 100)
-      });
-
-      // Mock recent activity
-      setRecentActivity([
-        {
-          id: 1,
-          type: 'diet_plan_created',
-          title: 'New Diet Plan Created',
-          description: 'Weight loss plan for Sarah Johnson',
-          time: '2 minutes ago',
-          icon: Target,
-          color: 'green'
-        },
-        {
-          id: 2,
-          type: 'client_added',
-          title: 'New Client Added',
-          description: 'Mike Davis joined your program',
-          time: '1 hour ago',
-          icon: Users,
-          color: 'blue'
-        },
-        {
-          id: 3,
-          type: 'plan_updated',
-          title: 'Diet Plan Updated',
-          description: 'Emma Wilson\'s plan modified',
-          time: '3 hours ago',
-          icon: Activity,
-          color: 'purple'
-        },
-        {
-          id: 4,
-          type: 'goal_achieved',
-          title: 'Goal Achieved',
-          description: 'John Smith reached target weight',
-          time: '1 day ago',
-          icon: CheckCircle,
-          color: 'green'
-        }
-      ]);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getIconColor = (color) => {
     const colors = {
@@ -113,6 +135,22 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const handleAddClient = () => {
+    try {
+      navigate('/clients/add');
+    } catch (error) {
+      toast.error('Failed to navigate to add client page');
+    }
+  };
+
+  const handleCreateDietPlan = () => {
+    try {
+      navigate('/diet-plans/add');
+    } catch (error) {
+      toast.error('Failed to navigate to create diet plan page');
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -188,13 +226,13 @@ const Dashboard = () => {
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-white">{stats.successRate}%</p>
-              <p className="text-sm text-gray-400">Success Rate</p>
+              <p className="text-3xl font-bold text-white">{stats.retentionRate}%</p>
+              <p className="text-sm text-gray-400">Client Retention Rate</p>
             </div>
           </div>
-          {stats.successRate > 0 && (
+          {stats.retentionRate > 0 && (
             <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-green-600 rounded-full" style={{ width: `${stats.successRate}%` }}></div>
+              <div className="h-full bg-green-600 rounded-full" style={{ width: `${stats.retentionRate}%` }}></div>
             </div>
           )}
         </div>
@@ -207,10 +245,7 @@ const Dashboard = () => {
           <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <button
-              onClick={() => {
-                console.log('Add Client button clicked');
-                navigate('/clients/add');
-              }}
+              onClick={handleAddClient}
               className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-gray-700 transition-all duration-300 cursor-pointer w-full text-left"
               type="button"
             >
@@ -232,10 +267,7 @@ const Dashboard = () => {
             </button>
 
             <button
-              onClick={() => {
-                console.log('Create Diet Plan button clicked');
-                navigate('/diet-plans/add');
-              }}
+              onClick={handleCreateDietPlan}
               className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-gray-700 transition-all duration-300 cursor-pointer w-full text-left"
               type="button"
             >

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import api from '../../utils/api';
 import { 
   Save, 
   ArrowLeft, 
@@ -38,14 +38,9 @@ const EditDietPlan = () => {
   const watchDailyCalories = watch('dailyCalories');
   const watchClientId = watch('clientId');
 
-  useEffect(() => {
-    fetchDietPlan();
-    fetchClients();
-  }, [id]);
-
-  const fetchDietPlan = async () => {
+  const fetchDietPlan = useCallback(async () => {
     try {
-      const response = await axios.get(`/api/diets/${id}`);
+      const response = await api.get(`/api/diets/${id}`);
       const dietPlanData = response.data;
       setDietPlan(dietPlanData);
       
@@ -71,11 +66,16 @@ const EditDietPlan = () => {
       toast.error('Failed to load diet plan');
       setLoading(false);
     }
-  };
+  }, [id, setValue]);
+
+  useEffect(() => {
+    fetchDietPlan();
+    fetchClients();
+  }, [fetchDietPlan]);
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('/api/clients');
+      const response = await api.get('/api/clients');
       setClients(response.data);
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -188,7 +188,7 @@ const EditDietPlan = () => {
         data.macronutrients = calculateMacros(data.dailyCalories, data.goal);
       }
 
-      await axios.put(`/api/diets/${id}`, data);
+      await api.put(`/api/diets/${id}`, data);
       toast.success('Diet plan updated successfully!');
       navigate(`/diets/${id}`);
     } catch (error) {

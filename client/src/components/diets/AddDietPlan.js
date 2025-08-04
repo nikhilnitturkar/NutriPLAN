@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import api from '../../utils/api';
 import { 
   Save, 
   ArrowLeft, 
@@ -41,7 +41,7 @@ const AddDietPlan = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('/api/clients');
+      const response = await api.get('/api/clients');
       setClients(response.data);
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -149,29 +149,17 @@ const AddDietPlan = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      console.log('Submitting diet plan data:', data);
-      
-      // Calculate macronutrients if not provided
-      if (!data.macronutrients) {
-        data.macronutrients = calculateMacros(data.dailyCalories, data.goal);
-      }
-
-      console.log('Final data being sent to server:', data);
-      
-      const response = await axios.post('/api/diets', data);
-      console.log('Server response:', response.data);
+      await api.post('/api/diets', data);
       toast.success('Diet plan created successfully!');
-      navigate('/diets');
+      navigate('/diet-plans');
     } catch (error) {
       console.error('Error creating diet plan:', error);
-      console.error('Error response:', error.response?.data);
-      toast.error(error.response?.data?.message || 'Failed to create diet plan');
+      const message = error.response?.data?.message || 'Failed to create diet plan';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
-
-  const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
   return (
     <div className="min-h-screen bg-black">

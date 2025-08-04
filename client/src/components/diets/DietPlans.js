@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Download, Eye, Edit, Trash2, Users, Target, Sparkles, Activity, Info, TrendingUp, ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const DietPlans = () => {
   const [dietPlans, setDietPlans] = useState([]);
@@ -23,10 +23,7 @@ const DietPlans = () => {
 
   const fetchDietPlans = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/diets', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/diets');
       setDietPlans(response.data);
     } catch (error) {
       toast.error('Failed to load diet plans');
@@ -37,10 +34,7 @@ const DietPlans = () => {
 
   const fetchClients = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/clients', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/clients');
       setClients(response.data);
     } catch (error) {
       console.error('Failed to load clients');
@@ -51,10 +45,7 @@ const DietPlans = () => {
     if (!window.confirm('Are you sure you want to delete this diet plan?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/diets/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/diets/${id}`);
       toast.success('Diet plan deleted successfully');
       fetchDietPlans();
     } catch (error) {
@@ -64,9 +55,7 @@ const DietPlans = () => {
 
   const handleExport = async (plan) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/diets/${plan._id}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get(`/api/diets/${plan._id}/pdf`, {
         responseType: 'blob'
       });
 
@@ -613,10 +602,7 @@ const CreateDietPlanModal = ({ clients, onClose, onSuccess, selectedClientId = n
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('/api/diets', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/api/diets', formData);
       onSuccess();
     } catch (error) {
       console.error('Error creating diet plan:', error);

@@ -5,8 +5,7 @@ import {
   CheckCircle, 
   AlertCircle, 
   Info, 
-  Trash2,
-  X
+  Trash2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -14,6 +13,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [showTestButton, setShowTestButton] = useState(true);
 
   useEffect(() => {
     fetchNotifications();
@@ -73,7 +73,6 @@ const Notifications = () => {
   };
 
   const markAsRead = (id) => {
-    console.log('Marking notification as read:', id);
     setNotifications(prev => 
       prev.map(notification => 
         notification.id === id 
@@ -85,13 +84,11 @@ const Notifications = () => {
   };
 
   const deleteNotification = (id) => {
-    console.log('Deleting notification:', id);
     setNotifications(prev => prev.filter(notification => notification.id !== id));
     toast.success('Notification deleted');
   };
 
   const markAllAsRead = () => {
-    console.log('Marking all notifications as read');
     setNotifications(prev => 
       prev.map(notification => ({ ...notification, read: true }))
     );
@@ -99,7 +96,6 @@ const Notifications = () => {
   };
 
   const clearAllNotifications = () => {
-    console.log('Clearing all notifications');
     setNotifications([]);
     toast.success('All notifications cleared');
   };
@@ -159,13 +155,10 @@ const Notifications = () => {
           </div>
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => {
-                console.log('Test button clicked');
-                toast.success('Test button works!');
-              }}
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
+              onClick={() => setShowTestButton(false)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
             >
-              Test Button
+              Got it!
             </button>
             <button
               onClick={markAllAsRead}

@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
-  Users, 
   Plus, 
   Search, 
-  Filter,
+  Filter, 
+  Edit, 
+  Trash2, 
   Eye,
-  MoreHorizontal,
+  Users,
   Target,
-  TrendingUp,
+  Activity,
   MapPin,
-  Trash2
+  MoreHorizontal
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { useDarkMode } from '../../contexts/DarkModeContext';
+import api from '../../utils/api';
 
 const ClientList = () => {
   const [clients, setClients] = useState([]);
@@ -22,14 +22,10 @@ const ClientList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
-  const { isDarkMode } = useDarkMode();
 
   const fetchClients = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/clients', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/clients');
       setClients(response.data);
     } catch (error) {
       toast.error('Failed to load clients');
@@ -46,10 +42,7 @@ const ClientList = () => {
     if (!window.confirm('Are you sure you want to delete this client?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/clients/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/clients/${id}`);
       toast.success('Client deleted successfully');
       fetchClients();
     } catch (error) {
@@ -70,7 +63,7 @@ const ClientList = () => {
   const getGoalIcon = (goal) => {
     const goalIcons = {
       weight_loss: Target,
-      muscle_gain: TrendingUp,
+      muscle_gain: Activity,
       maintenance: Target,
       performance: Target,
       general_health: Users
@@ -145,7 +138,7 @@ const ClientList = () => {
         <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mr-4">
-              <TrendingUp className="w-6 h-6 text-white" />
+              <Activity className="w-6 h-6 text-white" />
             </div>
             <div>
               <p className="text-3xl font-bold text-white">

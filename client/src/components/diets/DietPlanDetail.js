@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Edit, Trash2, User, Target, Clock, Droplets, Pill, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const DietPlanDetail = () => {
   const { id } = useParams();
@@ -14,10 +14,7 @@ const DietPlanDetail = () => {
 
   const fetchDietPlan = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/diets/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/api/diets/${id}`);
       setDietPlan(response.data);
       
       // Fetch client details
@@ -26,9 +23,7 @@ const DietPlanDetail = () => {
         const clientId = typeof response.data.clientId === 'object' ? response.data.clientId._id : response.data.clientId;
         if (clientId) {
           try {
-            const clientResponse = await axios.get(`/api/clients/${clientId}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
+            const clientResponse = await api.get(`/api/clients/${clientId}`);
             setClient(clientResponse.data);
           } catch (clientError) {
             console.error('Failed to fetch client details:', clientError);
@@ -55,10 +50,7 @@ const DietPlanDetail = () => {
     if (!window.confirm('Are you sure you want to delete this diet plan?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/diets/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/diets/${id}`);
       toast.success('Diet plan deleted successfully');
       navigate('/diet-plans');
     } catch (error) {
@@ -69,9 +61,7 @@ const DietPlanDetail = () => {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/diets/${id}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get(`/api/diets/${id}/pdf`, {
         responseType: 'blob'
       });
 

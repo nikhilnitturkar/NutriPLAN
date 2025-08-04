@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Save, 
-  Edit, 
+  Settings as SettingsIcon,
+  LogOut,
+  Download,
+  Trash2,
+  Eye,
+  EyeOff,
+  Edit,
   X,
   Shield,
-  Bell,
-  Palette,
-  Database,
-  Settings as SettingsIcon,
-  Eye,
-  EyeOff
+  Database
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
-import { useDarkMode } from '../../contexts/DarkModeContext';
-import axios from 'axios';
+import { toast } from 'react-hot-toast';
+import api from '../../utils/api';
 
-const Settings = ({ onClose }) => {
-  const { user, updateUser, logout } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
+const Settings = ({ isOpen, onClose }) => {
+  const { user, logout, updateUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('profile');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -79,10 +75,7 @@ const Settings = ({ onClose }) => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put('/api/auth/profile', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.put('/api/auth/profile', formData);
       
       updateUser(response.data);
       setIsEditing(false);
@@ -122,12 +115,9 @@ const Settings = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put('/api/auth/change-password', {
+      await api.put('/api/auth/change-password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       toast.success('Password changed successfully');
@@ -148,10 +138,7 @@ const Settings = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete('/api/auth/account', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete('/api/auth/account');
       
       toast.success('Account deleted successfully');
       logout();

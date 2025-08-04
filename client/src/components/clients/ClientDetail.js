@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -8,11 +8,10 @@ import {
   User, 
   Target, 
   FileText,
-  TrendingUp,
   Utensils
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const ClientDetail = () => {
   const { id } = useParams();
@@ -22,38 +21,30 @@ const ClientDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  const fetchClientData = useCallback(async () => {
+  const fetchClientData = async () => {
     try {
-      const token = localStorage.getItem('token');
       const [clientResponse, dietPlansResponse] = await Promise.all([
-        axios.get(`/api/clients/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`/api/diets`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        api.get(`/api/clients/${id}`),
+        api.get(`/api/diets`)
       ]);
 
       setClient(clientResponse.data);
-      console.log('All diet plans:', dietPlansResponse.data);
-      console.log('Client ID:', id);
-      console.log('Diet plans with clientId:', dietPlansResponse.data.map(plan => ({ id: plan._id, clientId: plan.clientId })));
-      
       const clientDietPlans = dietPlansResponse.data.filter(
         plan => plan.clientId === id || plan.clientId?._id === id
       );
-      console.log('Filtered diet plans for client:', clientDietPlans);
       setDietPlans(clientDietPlans);
     } catch (error) {
       toast.error('Failed to load client data');
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  };
 
   useEffect(() => {
-    fetchClientData();
-  }, [fetchClientData]);
+    if (id) {
+      fetchClientData();
+    }
+  }, [id]);
 
   const getStatusBadge = (status) => {
     const statusClasses = {
@@ -67,10 +58,6 @@ const ClientDetail = () => {
         {status}
       </span>
     );
-  };
-
-  const getGoalLabel = (goal) => {
-    return goal.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   const formatDate = (dateString) => {
@@ -129,7 +116,7 @@ const ClientDetail = () => {
             <div className="flex items-center space-x-3">
               {getStatusBadge(client.status)}
               <Link
-                to={`/clients/${id}/edit`}
+                to={`/clients/edit/${id}`}
                 className="inline-flex items-center px-3 py-2 border border-gray-700 shadow-sm text-sm leading-4 font-medium rounded-xl text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
               >
                 <Edit className="-ml-0.5 mr-2 h-4 w-4" />
@@ -210,7 +197,12 @@ const ClientDetail = () => {
                   {client.personalInfo.address && (
                     <div className="sm:col-span-2">
                       <label className="block text-sm font-medium text-gray-400">Address</label>
-                      <p className="mt-1 text-sm text-white">{client.personalInfo.address}</p>
+                      <p className="mt-1 text-sm text-white">
+                        {client.personalInfo.address.street && `${client.personalInfo.address.street}, `}
+                        {client.personalInfo.address.city && `${client.personalInfo.address.city}, `}
+                        {client.personalInfo.address.state && `${client.personalInfo.address.state} `}
+                        {client.personalInfo.address.zipCode && client.personalInfo.address.zipCode}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -316,12 +308,14 @@ const ClientDetail = () => {
 
         {activeTab === 'progress' && (
           <div className="space-y-6">
-            <div className="bg-gray-900/95 shadow-xl rounded-2xl border border-gray-800 p-6">
-              <h3 className="text-lg leading-6 font-medium text-white mb-6">Progress Tracking</h3>
-              <div className="text-center py-8">
-                <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-white">Progress tracking coming soon</h3>
-                <p className="mt-1 text-sm text-gray-400">Track your client's fitness progress over time.</p>
+            <div className="bg-gray-900/95 shadow-xl rounded-2xl border border-gray-800">
+              <div className="px-6 py-6">
+                <h3 className="text-lg leading-6 font-medium text-white mb-6">Progress Tracking</h3>
+                <div className="text-center py-8">
+                  <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-white mb-2">Progress tracking will be available soon</h3>
+                  <p className="text-sm text-gray-400">Track weight, measurements, and goal progress</p>
+                </div>
               </div>
             </div>
           </div>

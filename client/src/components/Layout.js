@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
+  Home, 
   Users, 
   Target, 
-  Plus,
-  LogOut, 
-  Menu, 
-  X,
-  User,
+  BarChart3, 
   Settings,
-  BarChart3,
-  Clock
+  LogOut,
+  Menu,
+  X,
+  User
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useDarkMode } from '../contexts/DarkModeContext';
@@ -32,7 +30,7 @@ const Layout = ({ children }) => {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard, description: 'Overview & Analytics' },
+    { name: 'Dashboard', href: '/', icon: Home, description: 'Overview & Analytics' },
     { name: 'Clients', href: '/clients', icon: Users, description: 'Manage Client Profiles' },
     { name: 'Diet Plans', href: '/diet-plans', icon: Target, description: 'Create & Manage Plans' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Performance Metrics' },

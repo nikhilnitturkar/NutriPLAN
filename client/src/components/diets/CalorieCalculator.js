@@ -63,8 +63,6 @@ const CalorieCalculator = ({ onCaloriesCalculated, initialData = null }) => {
     try {
       const { gender, age, weight, height, activityLevel } = formData;
       
-      console.log('Calculating calories with data:', formData);
-      
       if (!age || !weight || !height) {
         alert('Please fill in all required fields');
         return;
@@ -83,8 +81,6 @@ const CalorieCalculator = ({ onCaloriesCalculated, initialData = null }) => {
       const bmr = calculateBMR(gender, weightNum, heightNum, ageNum);
       const tdee = calculateTDEE(bmr, activityLevel);
       
-      console.log('BMR:', bmr, 'TDEE:', tdee);
-
       // Calculate all calorie options
       const calorieOptions = Object.entries(goalOptions).map(([key, option]) => ({
         key,
@@ -101,7 +97,6 @@ const CalorieCalculator = ({ onCaloriesCalculated, initialData = null }) => {
         selectedOption: null
       };
 
-      console.log('Calculated result:', result);
       setCalculatedCalories(result);
       setShowResults(true);
       setSelectedCalorieOption(null);
@@ -128,9 +123,8 @@ const CalorieCalculator = ({ onCaloriesCalculated, initialData = null }) => {
   };
 
   const handleCalorieOptionSelect = (option) => {
-    console.log('Selected calorie option:', option);
     setSelectedCalorieOption(option);
-    // Don't automatically apply the calories - let user click "Use This Plan" button
+    setShowResults(false);
   };
 
   const resetCalculator = () => {
