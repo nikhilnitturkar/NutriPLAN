@@ -1,6 +1,9 @@
 # Use Node.js 18 Alpine as base image
 FROM node:18-alpine
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Set working directory
 WORKDIR /app
 
@@ -8,23 +11,15 @@ WORKDIR /app
 COPY package*.json ./
 COPY client/package*.json ./client/
 
-# Install dependencies
-RUN npm ci --only=production
-RUN cd client && npm ci --only=production
+# Install dependencies with legacy peer deps
+RUN npm ci --only=production --legacy-peer-deps
+RUN cd client && npm ci --only=production --legacy-peer-deps
 
 # Copy source code
 COPY . .
 
 # Build the React app
 RUN cd client && npm run build
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-# Change ownership of the app directory
-RUN chown -R nextjs:nodejs /app
-USER nextjs
 
 # Expose port
 EXPOSE 5001
