@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
 import api from '../../utils/api';
 import { 
   Plus, 
@@ -8,11 +7,7 @@ import {
   Trash2, 
   Download, 
   Search,
-  Filter,
-  Eye,
-  Calendar,
   Target,
-  ArrowRight,
   X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
