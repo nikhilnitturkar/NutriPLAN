@@ -131,16 +131,16 @@ const DietPlans = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 lg:p-8">
+    <div className="space-y-4 lg:space-y-6 p-3 lg:p-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 lg:gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white">Diet Plans</h1>
-          <p className="text-gray-400 mt-1">Manage and create personalized nutrition plans</p>
+          <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold text-white">Diet Plans</h1>
+          <p className="text-gray-400 mt-1 text-sm lg:text-base">Manage and create personalized nutrition plans</p>
         </div>
         
         {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -148,13 +148,13 @@ const DietPlans = () => {
               placeholder="Search plans..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent w-full sm:w-64"
+              className="pl-10 pr-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent w-full sm:w-48 lg:w-64 text-sm lg:text-base"
             />
           </div>
           <select
             value={filterGoal}
             onChange={(e) => setFilterGoal(e.target.value)}
-            className="px-6 py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            className="px-4 lg:px-6 py-2 lg:py-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm lg:text-base"
           >
             <option value="all">All Goals</option>
             <option value="Weight Loss">Weight Loss</option>
@@ -163,16 +163,16 @@ const DietPlans = () => {
           </select>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 lg:px-8 py-2 lg:py-4 rounded-lg font-semibold flex items-center gap-2 lg:gap-3 transition-all duration-300 shadow-lg hover:shadow-xl text-sm lg:text-base"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
             Create New Plan
           </button>
           {selectedClientId && (
-            <div className="mt-4 p-4 bg-red-900/20 border border-red-700/30 rounded-lg">
+            <div className="mt-3 lg:mt-4 p-3 lg:p-4 bg-red-900/20 border border-red-700/30 rounded-lg">
               <div className="flex items-center">
-                <Target className="w-5 h-5 text-red-400 mr-2" />
-                <span className="text-sm text-red-300">
+                <Target className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 mr-2" />
+                <span className="text-xs lg:text-sm text-red-300">
                   Creating diet plan for: {clients.find(c => c._id === selectedClientId)?.personalInfo?.name || 'Selected Client'}
                 </span>
               </div>
@@ -182,18 +182,18 @@ const DietPlans = () => {
       </div>
 
       {/* Diet Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
         {filteredPlans.map((plan) => (
           <div key={plan._id} className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 hover:border-gray-700 transition-all duration-300 group">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
+            <div className="p-4 lg:p-6">
+              <div className="flex items-start justify-between mb-4 lg:mb-6">
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-sm lg:text-xl font-semibold text-white mb-1 lg:mb-2">
                     {getClientName(plan)}
                   </h3>
-                  <p className="text-sm text-gray-400">{plan.goal}</p>
+                  <p className="text-xs lg:text-sm text-gray-400">{plan.goal}</p>
                 </div>
-                <div className={`px-4 py-2 rounded-full text-xs font-medium ${
+                <div className={`px-2 lg:px-4 py-1 lg:py-2 rounded-full text-xs font-medium ${
                   plan.goal === 'Weight Loss' ? 'bg-red-900/30 text-red-400 border border-red-700/30' :
                   plan.goal === 'Muscle Gain' ? 'bg-purple-900/30 text-purple-400 border border-purple-700/30' :
                   'bg-green-900/30 text-green-400 border border-green-700/30'
@@ -202,45 +202,45 @@ const DietPlans = () => {
                 </div>
               </div>
 
-              <div className="space-y-4 mb-6">
+              <div className="space-y-2 lg:space-y-4 mb-4 lg:mb-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Daily Calories</span>
-                  <span className="text-white font-semibold">{plan.dailyCalories?.toLocaleString() || 'N/A'}</span>
+                  <span className="text-gray-400 text-xs lg:text-sm">Daily Calories</span>
+                  <span className="text-white font-semibold text-xs lg:text-sm">{plan.dailyCalories?.toLocaleString() || 'N/A'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Protein</span>
-                  <span className="text-white font-semibold">{plan.protein || 'N/A'}g</span>
+                  <span className="text-gray-400 text-xs lg:text-sm">Protein</span>
+                  <span className="text-white font-semibold text-xs lg:text-sm">{plan.protein || 'N/A'}g</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Carbs</span>
-                  <span className="text-white font-semibold">{plan.carbs || 'N/A'}g</span>
+                  <span className="text-gray-400 text-xs lg:text-sm">Carbs</span>
+                  <span className="text-white font-semibold text-xs lg:text-sm">{plan.carbs || 'N/A'}g</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Fat</span>
-                  <span className="text-white font-semibold">{plan.fat || 'N/A'}g</span>
+                  <span className="text-gray-400 text-xs lg:text-sm">Fat</span>
+                  <span className="text-white font-semibold text-xs lg:text-sm">{plan.fat || 'N/A'}g</span>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-1 lg:gap-2">
                 <button
                   onClick={() => handleEdit(plan)}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-2 lg:px-4 py-2 lg:py-3 rounded-lg text-xs lg:text-sm font-medium flex items-center justify-center gap-1 lg:gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
                   Edit
                 </button>
                 <button
                   onClick={() => handleExport(plan)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-2 lg:px-4 py-2 lg:py-3 rounded-lg text-xs lg:text-sm font-medium flex items-center justify-center gap-1 lg:gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3 h-3 lg:w-4 lg:h-4" />
                   Export
                 </button>
                 <button
                   onClick={() => handleDelete(plan._id)}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-2 lg:px-4 py-2 lg:py-3 rounded-lg text-xs lg:text-sm font-medium flex items-center justify-center gap-1 lg:gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3 h-3 lg:w-4 lg:h-4" />
                   Delete
                 </button>
               </div>

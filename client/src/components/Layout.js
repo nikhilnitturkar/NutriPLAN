@@ -39,7 +39,7 @@ const Layout = ({ children }) => {
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 rounded-lg bg-gray-900/95 border border-gray-800 text-gray-300 hover:text-white transition-colors"
         >
-          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
@@ -49,12 +49,12 @@ const Layout = ({ children }) => {
       }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-6 border-b border-gray-800">
-            <h1 className="text-xl font-bold text-white">NutriPlan by A S T R A</h1>
+          <div className="flex items-center justify-center h-14 lg:h-16 px-4 lg:px-6 border-b border-gray-800">
+            <h1 className="text-lg lg:text-xl font-bold text-white text-center">NutriPlan by A S T R A</h1>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
+          <nav className="flex-1 px-3 lg:px-4 py-4 lg:py-6 space-y-1 lg:space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
@@ -64,13 +64,13 @@ const Layout = ({ children }) => {
                   key={item.name}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center px-3 lg:px-4 py-2 lg:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg'
                       : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
                   }`}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
+                  <Icon className="mr-2 lg:mr-3 h-4 w-4 lg:h-5 lg:w-5" />
                   {item.name}
                 </Link>
               );
@@ -78,17 +78,17 @@ const Layout = ({ children }) => {
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-gray-800">
-            <div className="flex items-center px-4 py-3">
+          <div className="p-3 lg:p-4 border-t border-gray-800">
+            <div className="flex items-center px-3 lg:px-4 py-2 lg:py-3">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                  <span className="text-sm font-semibold text-white">
+                <div className="w-6 h-6 lg:w-8 lg:h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                  <span className="text-xs lg:text-sm font-semibold text-white">
                     {user?.name?.charAt(0) || 'T'}
                   </span>
                 </div>
               </div>
-              <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+              <div className="ml-2 lg:ml-3 flex-1 min-w-0">
+                <p className="text-xs lg:text-sm font-medium text-white truncate">
                   {user?.name || 'Trainer'}
                 </p>
                 <p className="text-xs text-gray-400 truncate">
@@ -98,9 +98,9 @@ const Layout = ({ children }) => {
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-xl transition-all duration-200"
+              className="w-full flex items-center px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-xl transition-all duration-200"
             >
-              <LogOut className="mr-3 h-5 w-5" />
+              <LogOut className="mr-2 lg:mr-3 h-4 w-4 lg:h-5 lg:w-5" />
               Logout
             </button>
           </div>
