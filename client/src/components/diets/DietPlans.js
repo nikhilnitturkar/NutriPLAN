@@ -1495,21 +1495,22 @@ const CreateDietPlanModal = ({ clients, onClose, onSuccess, selectedClientId = n
         </div>
       )}
 
-      {/* Edit Diet Plan Modal Component */}
-      <EditDietPlanModal
-        dietPlan={editingDietPlan}
-        clients={clients}
-        onClose={() => {
-          setShowEditModal(false);
-          setEditingDietPlan(null);
-        }}
-        onSuccess={() => {
-          setShowEditModal(false);
-          setEditingDietPlan(null);
-          fetchDietPlans();
-        }}
-      />
-    </>
+      {showEditModal && editingDietPlan && (
+        <EditDietPlanModal
+          dietPlan={editingDietPlan}
+          clients={clients}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingDietPlan(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setEditingDietPlan(null);
+            fetchDietPlans();
+          }}
+        />
+      )}
+    </div>
   );
 };
 
