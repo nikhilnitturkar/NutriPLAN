@@ -11,7 +11,6 @@ import {
   Calculator,
   X,
   ArrowLeft,
-  ArrowRight,
   Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -636,9 +635,7 @@ const Step3DietPlanForm = ({ selectedClient, calculatedCalories, onBack, onSucce
   };
 
   const handleBackToCalculator = () => {
-    setCurrentStep(2); // Go back to Step 2
-    setSelectedClient(null); // Clear selected client
-    setCalculatedCalories(null); // Clear calculated calories
+    onBack(); // Use the onBack prop
   };
 
   return (
@@ -694,7 +691,6 @@ const Step3DietPlanForm = ({ selectedClient, calculatedCalories, onBack, onSucce
               type="number"
               name="dailyCalories"
               value={calculatedCalories}
-              onChange={(e) => setCalculatedCalories(e.target.value ? parseFloat(e.target.value) : null)}
               className="flex-1 px-3 lg:px-4 py-2 lg:py-3 bg-gray-800 border border-gray-700 rounded-lg lg:rounded-xl text-xs lg:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               placeholder="Enter daily calories"
               required
