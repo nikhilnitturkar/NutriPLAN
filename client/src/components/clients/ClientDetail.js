@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
   Edit, 
@@ -21,24 +21,25 @@ const ClientDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  const fetchClientData = async () => {
+  const fetchClientData = useCallback(async () => {
     try {
       const [clientResponse, dietPlansResponse] = await Promise.all([
         api.get(`/api/clients/${id}`),
-        api.get(`/api/diets`)
+        api.get('/api/diets')
       ]);
-
+      
       setClient(clientResponse.data);
       const clientDietPlans = dietPlansResponse.data.filter(
         plan => plan.clientId === id || plan.clientId?._id === id
       );
       setDietPlans(clientDietPlans);
     } catch (error) {
+      console.error('Error fetching client data:', error);
       toast.error('Failed to load client data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     if (id) {

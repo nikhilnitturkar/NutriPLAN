@@ -154,12 +154,6 @@ const Notifications = () => {
           </div>
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => setShowTestButton(false)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
-            >
-              Got it!
-            </button>
-            <button
               onClick={markAllAsRead}
               className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
             >
