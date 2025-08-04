@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Download, Eye, Edit, Trash2, Users, Target, Sparkles, Activity, Info, TrendingUp, ArrowDown, ArrowUp, Minus } from 'lucide-react';
+import { Plus, Search, Download, Eye, Edit, Trash2, Users, Target, Sparkles, Activity, Info, TrendingUp, ArrowDown, ArrowUp, Minus, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
 
@@ -11,6 +11,8 @@ const DietPlans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingDietPlan, setEditingDietPlan] = useState(null);
   
   // Get clientId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
@@ -80,6 +82,11 @@ const DietPlans = () => {
     } catch (error) {
       toast.error('Failed to export PDF');
     }
+  };
+
+  const handleEdit = (plan) => {
+    setEditingDietPlan(plan);
+    setShowEditModal(true);
   };
 
   const getClientName = (dietPlan) => {
@@ -294,13 +301,13 @@ const DietPlans = () => {
                   <Eye className="w-4 h-4" />
                   View
                 </Link>
-                <Link
-                  to={`/diet-plans/edit/${plan._id}`}
+                <button
+                  onClick={() => handleEdit(plan)}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   <Edit className="w-4 h-4" />
                   Edit
-                </Link>
+                </button>
                 <button
                   onClick={() => handleDelete(plan._id)}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -1324,7 +1331,243 @@ const CreateDietPlanModal = ({ clients, onClose, onSuccess, selectedClientId = n
           </div>
         </div>
       )}
+
+      {showEditModal && editingDietPlan && (
+        <EditDietPlanModal
+          dietPlan={editingDietPlan}
+          clients={clients}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingDietPlan(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setEditingDietPlan(null);
+            fetchDietPlans();
+          }}
+        />
+      )}
     </>
+  );
+};
+
+// Edit Diet Plan Modal Component
+const EditDietPlanModal = ({ dietPlan, clients, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    name: dietPlan.name || '',
+    clientId: dietPlan.clientId?._id || dietPlan.clientId || '',
+    goal: dietPlan.goal || 'Weight Loss',
+    dailyCalories: dietPlan.dailyCalories || '',
+    description: dietPlan.description || '',
+    restrictions: dietPlan.restrictions || '',
+    supplements: dietPlan.supplements || '',
+    hydration: dietPlan.hydration || '',
+    isActive: dietPlan.isActive !== undefined ? dietPlan.isActive : true,
+    dailyMeals: dietPlan.dailyMeals || []
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    
+    try {
+      await api.put(`/api/diets/${dietPlan._id}`, formData);
+      toast.success('Diet plan updated successfully!');
+      onSuccess();
+    } catch (error) {
+      console.error('Error updating diet plan:', error);
+      toast.error('Failed to update diet plan');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-800">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-white">Edit Diet Plan</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Plan Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Enter plan name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Client
+              </label>
+              <select
+                name="clientId"
+                value={formData.clientId}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select a client</option>
+                {clients.map(client => (
+                  <option key={client._id} value={client._id}>
+                    {client.personalInfo.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Goal
+              </label>
+              <select
+                name="goal"
+                value={formData.goal}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                required
+              >
+                <option value="Weight Loss">Weight Loss</option>
+                <option value="Muscle Gain">Muscle Gain</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Performance">Performance</option>
+                <option value="General Health">General Health</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Daily Calories
+              </label>
+              <input
+                type="number"
+                name="dailyCalories"
+                value={formData.dailyCalories}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Enter daily calories"
+                required
+                min="800"
+                max="5000"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              rows="3"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Enter plan description"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Dietary Restrictions
+            </label>
+            <textarea
+              name="restrictions"
+              value={formData.restrictions}
+              onChange={handleInputChange}
+              rows="2"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Enter dietary restrictions"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Recommended Supplements
+            </label>
+            <textarea
+              name="supplements"
+              value={formData.supplements}
+              onChange={handleInputChange}
+              rows="2"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Enter recommended supplements"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Hydration Guidelines
+            </label>
+            <textarea
+              name="hydration"
+              value={formData.hydration}
+              onChange={handleInputChange}
+              rows="2"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Enter hydration guidelines"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="isActive"
+              checked={formData.isActive}
+              onChange={handleInputChange}
+              className="w-4 h-4 text-red-600 bg-gray-800 border-gray-700 rounded focus:ring-red-500 focus:ring-2"
+            />
+            <label className="ml-2 text-sm text-gray-300">
+              Active Plan
+            </label>
+          </div>
+
+          <div className="flex gap-3 pt-6 border-t border-gray-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg font-medium transition-all disabled:opacity-50"
+            >
+              {saving ? 'Updating...' : 'Update Plan'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 

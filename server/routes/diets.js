@@ -264,6 +264,74 @@ const generateDietPlanHTML = (dietPlan) => {
                 </div>
             </div>
 
+            ${dietPlan.description ? `
+            <div class="section">
+                <h2>Plan Description</h2>
+                <div class="info-item">
+                    <p style="color: #333; line-height: 1.6;">${dietPlan.description}</p>
+                </div>
+            </div>
+            ` : ''}
+
+            ${dietPlan.restrictions ? `
+            <div class="section">
+                <h2>Dietary Restrictions</h2>
+                <div class="info-item">
+                    <p style="color: #333; line-height: 1.6;">${dietPlan.restrictions}</p>
+                </div>
+            </div>
+            ` : ''}
+
+            ${dietPlan.supplements ? `
+            <div class="section">
+                <h2>Recommended Supplements</h2>
+                <div class="info-item">
+                    <p style="color: #333; line-height: 1.6;">${dietPlan.supplements}</p>
+                </div>
+            </div>
+            ` : ''}
+
+            ${dietPlan.hydration ? `
+            <div class="section">
+                <h2>Hydration Guidelines</h2>
+                <div class="info-item">
+                    <p style="color: #333; line-height: 1.6;">${dietPlan.hydration}</p>
+                </div>
+            </div>
+            ` : ''}
+
+            ${client?.fitnessData ? `
+            <div class="section">
+                <h2>Client Fitness Data</h2>
+                <div class="info-grid">
+                    ${client.fitnessData.currentWeight ? `
+                    <div class="info-item">
+                        <h3>Current Weight</h3>
+                        <p>${client.fitnessData.currentWeight} kg</p>
+                    </div>
+                    ` : ''}
+                    ${client.fitnessData.targetWeight ? `
+                    <div class="info-item">
+                        <h3>Target Weight</h3>
+                        <p>${client.fitnessData.targetWeight} kg</p>
+                    </div>
+                    ` : ''}
+                    ${client.fitnessData.height ? `
+                    <div class="info-item">
+                        <h3>Height</h3>
+                        <p>${client.fitnessData.height} cm</p>
+                    </div>
+                    ` : ''}
+                    ${client.fitnessData.bodyFatPercentage ? `
+                    <div class="info-item">
+                        <h3>Body Fat %</h3>
+                        <p>${client.fitnessData.bodyFatPercentage}%</p>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            ` : ''}
+
             ${dietPlan.dailyMeals && dietPlan.dailyMeals.length > 0 ? `
             <div class="section meals-section">
                 <h2>Daily Meal Plan</h2>
