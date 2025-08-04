@@ -11,8 +11,7 @@ const DietPlans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingDietPlan, setEditingDietPlan] = useState(null);
+
   
   // Get clientId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
@@ -85,8 +84,8 @@ const DietPlans = () => {
   };
 
   const handleEdit = (plan) => {
-    setEditingDietPlan(plan);
-    setShowEditModal(true);
+    // Navigate to diet plans page with edit parameter
+    navigate(`/diet-plans?edit=${plan._id}`);
   };
 
   // Edit Diet Plan Modal Component
