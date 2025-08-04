@@ -15,11 +15,18 @@ const DietPlans = () => {
   // Get clientId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const selectedClientId = urlParams.get('clientId');
+  const showModal = urlParams.get('showModal');
 
   useEffect(() => {
     fetchDietPlans();
     fetchClients();
   }, []);
+
+  useEffect(() => {
+    if (showModal === 'true') {
+      setShowCreateModal(true);
+    }
+  }, [showModal, selectedClientId]);
 
   const fetchDietPlans = async () => {
     try {

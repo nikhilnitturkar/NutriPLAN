@@ -327,7 +327,7 @@ const ClientDetail = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg leading-6 font-medium text-white">Diet Plans</h3>
               <Link
-                to={`/diet-plans/add?clientId=${id}`}
+                to={`/diet-plans?showModal=true&clientId=${id}`}
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all"
               >
                 <Plus className="-ml-1 mr-2 h-5 w-5" />
@@ -390,7 +390,7 @@ const ClientDetail = () => {
                   <p className="mt-1 text-sm text-gray-400">Create a diet plan for this client to get started.</p>
                   <div className="mt-6">
                     <Link
-                      to={`/diet-plans/add?clientId=${id}`}
+                      to={`/diet-plans?showModal=true&clientId=${id}`}
                       className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all"
                     >
                       <Plus className="-ml-1 mr-2 h-5 w-5" />

@@ -146,7 +146,7 @@ const Dashboard = () => {
 
   const handleCreateDietPlan = () => {
     try {
-      navigate('/diet-plans/add');
+      navigate('/diet-plans?showModal=true');
     } catch (error) {
       toast.error('Failed to navigate to create diet plan page');
     }
