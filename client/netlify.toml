@@ -12,7 +12,7 @@
   status = 200
 
 [context.production.environment]
-  REACT_APP_API_URL = "https://your-backend-url.herokuapp.com"
+  REACT_APP_API_URL = "https://nutriplan-backend.onrender.com"
 
 [context.deploy-preview.environment]
-  REACT_APP_API_URL = "https://your-backend-url.herokuapp.com" 
+  REACT_APP_API_URL = "https://nutriplan-backend.onrender.com" 
