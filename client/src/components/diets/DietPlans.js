@@ -30,6 +30,8 @@ const DietPlans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [exportingPlan, setExportingPlan] = useState(null);
+  const [exportProgress, setExportProgress] = useState(0);
 
   // Get clientId from URL parameters
   useEffect(() => {
@@ -72,22 +74,47 @@ const DietPlans = () => {
 
   const handleExport = async (plan) => {
     try {
+      setExportingPlan(plan._id);
+      setExportProgress(0);
+      
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setExportProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+
       const response = await api.get(`/api/diets/${plan._id}/export`, {
         responseType: 'blob'
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `diet-plan-${plan.name}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      clearInterval(progressInterval);
+      setExportProgress(100);
       
-      toast.success('PDF exported successfully!');
+      // Small delay to show 100% completion
+      setTimeout(() => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `diet-plan-${plan.name}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        setExportingPlan(null);
+        setExportProgress(0);
+        toast.success('PDF exported successfully!');
+      }, 500);
+      
     } catch (error) {
       console.error('Error exporting PDF:', error);
+      setExportingPlan(null);
+      setExportProgress(0);
       toast.error('Failed to export PDF');
     }
   };
@@ -231,10 +258,24 @@ const DietPlans = () => {
                 </button>
                 <button
                   onClick={() => handleExport(plan)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-2 lg:px-4 py-2 lg:py-3 rounded-lg text-xs lg:text-sm font-medium flex items-center justify-center gap-1 lg:gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  disabled={exportingPlan === plan._id}
+                  className={`flex-1 px-2 lg:px-4 py-2 lg:py-3 rounded-lg text-xs lg:text-sm font-medium flex items-center justify-center gap-1 lg:gap-2 transition-all duration-300 shadow-lg hover:shadow-xl ${
+                    exportingPlan === plan._id
+                      ? 'bg-blue-700 text-blue-300 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
                 >
-                  <Download className="w-3 h-3 lg:w-4 lg:h-4" />
-                  Export
+                  {exportingPlan === plan._id ? (
+                    <>
+                      <div className="w-3 h-3 lg:w-4 lg:h-4 border-2 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3 h-3 lg:w-4 lg:h-4" />
+                      <span>Export</span>
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => handleDelete(plan._id)}
@@ -260,6 +301,45 @@ const DietPlans = () => {
           }}
           selectedClientId={selectedClientId}
         />
+      )}
+
+      {/* Export Progress Modal */}
+      {exportingPlan && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Download className="w-8 h-8 text-white animate-pulse" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Exporting PDF</h3>
+              <p className="text-gray-400 mb-6">Generating your diet plan PDF...</p>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-800 rounded-full h-3 mb-4">
+                <div 
+                  className="bg-gradient-to-r from-blue-600 to-blue-500 h-3 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${exportProgress}%` }}
+                />
+              </div>
+              
+              {/* Progress Text */}
+              <p className="text-sm text-gray-400">
+                {exportProgress < 100 ? `${Math.round(exportProgress)}% complete` : 'Download ready!'}
+              </p>
+              
+              {/* Loading Animation */}
+              {exportProgress < 100 && (
+                <div className="flex justify-center mt-4">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
