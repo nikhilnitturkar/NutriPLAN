@@ -153,30 +153,30 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 p-4 lg:p-8">
       {/* Hero Section */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 via-red-900 to-black p-8">
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 via-red-900 to-black p-6 lg:p-8">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
         <div className="relative z-10">
-          <h1 className="text-5xl font-bold text-white mb-4">
+          <h1 className="text-3xl lg:text-5xl font-bold text-white mb-4">
             Welcome back, {user?.name || 'Trainer'}! 👋
           </h1>
-          <p className="text-xl text-gray-300 mb-6">
+          <p className="text-lg lg:text-xl text-gray-300 mb-6">
             Here's what's happening with your NutriPlan business today.
           </p>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="bg-gray-900 rounded-xl p-4 lg:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-600 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-white">{stats.totalClients}</p>
-              <p className="text-sm text-gray-400">Total Clients</p>
+              <p className="text-2xl lg:text-3xl font-bold text-white">{stats.totalClients}</p>
+              <p className="text-xs lg:text-sm text-gray-400">Total Clients</p>
             </div>
           </div>
           {stats.totalClients > 0 && (
@@ -186,14 +186,14 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+        <div className="bg-gray-900 rounded-xl p-4 lg:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-              <Target className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+              <Target className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-white">{stats.totalDietPlans}</p>
-              <p className="text-sm text-gray-400">Diet Plans</p>
+              <p className="text-2xl lg:text-3xl font-bold text-white">{stats.totalDietPlans}</p>
+              <p className="text-xs lg:text-sm text-gray-400">Diet Plans</p>
             </div>
           </div>
           {stats.totalDietPlans > 0 && (
@@ -203,14 +203,14 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+        <div className="bg-gray-900 rounded-xl p-4 lg:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Activity className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Activity className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-white">{stats.activePlans}</p>
-              <p className="text-sm text-gray-400">Active Plans</p>
+              <p className="text-2xl lg:text-3xl font-bold text-white">{stats.activePlans}</p>
+              <p className="text-xs lg:text-sm text-gray-400">Active Plans</p>
             </div>
           </div>
           {stats.activePlans > 0 && (
@@ -220,14 +220,14 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
+        <div className="bg-gray-900 rounded-xl p-4 lg:p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-600 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-white">{stats.retentionRate}%</p>
-              <p className="text-sm text-gray-400">Client Retention Rate</p>
+              <p className="text-2xl lg:text-3xl font-bold text-white">{stats.retentionRate}%</p>
+              <p className="text-xs lg:text-sm text-gray-400">Client Retention Rate</p>
             </div>
           </div>
           {stats.retentionRate > 0 && (
@@ -239,29 +239,29 @@ const Dashboard = () => {
       </div>
 
       {/* Content Sections */}
-      <div className="space-y-8">
+      <div className="space-y-6 lg:space-y-8">
         {/* Quick Actions Section */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             <button
               onClick={handleAddClient}
               className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-gray-700 transition-all duration-300 cursor-pointer w-full text-left"
               type="button"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-              <div className="relative p-6 z-10">
+              <div className="relative p-4 lg:p-6 z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mr-4">
-                      <Plus className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-600 rounded-lg flex items-center justify-center mr-3 lg:mr-4">
+                      <Plus className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-1">Add New Client</h3>
-                      <p className="text-gray-400">Create a new client profile</p>
+                      <h3 className="text-lg lg:text-xl font-bold text-white mb-1">Add New Client</h3>
+                      <p className="text-sm lg:text-base text-gray-400">Create a new client profile</p>
                     </div>
                   </div>
-                  <ArrowUpRight className="w-6 h-6 text-gray-400 group-hover:text-red-500 transition-colors" />
+                  <ArrowUpRight className="w-5 h-5 lg:w-6 lg:h-6 text-gray-400 group-hover:text-red-500 transition-colors" />
                 </div>
               </div>
             </button>
@@ -272,18 +272,18 @@ const Dashboard = () => {
               type="button"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-              <div className="relative p-6 z-10">
+              <div className="relative p-4 lg:p-6 z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mr-4">
-                      <Target className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-600 rounded-lg flex items-center justify-center mr-3 lg:mr-4">
+                      <Target className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-1">Create Diet Plan</h3>
-                      <p className="text-gray-400">Design personalized nutrition</p>
+                      <h3 className="text-lg lg:text-xl font-bold text-white mb-1">Create Diet Plan</h3>
+                      <p className="text-sm lg:text-base text-gray-400">Design personalized nutrition</p>
                     </div>
                   </div>
-                  <ArrowUpRight className="w-6 h-6 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                  <ArrowUpRight className="w-5 h-5 lg:w-6 lg:h-6 text-gray-400 group-hover:text-purple-500 transition-colors" />
                 </div>
               </div>
             </button>
@@ -292,36 +292,22 @@ const Dashboard = () => {
 
         {/* Recent Activity Section */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-6">Recent Activity</h2>
+          <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Recent Activity</h2>
           <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-            <div className="p-6">
-              <div className="space-y-4">
+            <div className="p-4 lg:p-6">
+              <div className="space-y-3 lg:space-y-4">
                 {recentActivity.map((activity, index) => {
                   const Icon = activity.icon;
                   return (
-                    <div 
-                      key={activity.id} 
-                      className={`flex items-start space-x-4 p-4 rounded-lg cursor-pointer hover:bg-gray-800/70 transition-colors ${
-                        index % 2 === 0 ? 'bg-gray-800/50' : 'bg-transparent'
-                      }`}
-                      onClick={() => {
-                        if (activity.type === 'diet_plan_created') {
-                          // Extract diet plan ID from activity.id (format: 'diet-{id}')
-                          const dietId = activity.id.replace('diet-', '');
-                          navigate(`/diet-plans/${dietId}`);
-                        } else if (activity.type === 'client_added') {
-                          // Extract client ID from activity.id (format: 'client-{id}')
-                          const clientId = activity.id.replace('client-', '');
-                          navigate(`/clients/${clientId}`);
-                        }
-                      }}
-                    >
-                      <div className={`w-10 h-10 rounded-lg ${getIconColor(activity.color)} flex items-center justify-center flex-shrink-0`}>
-                        <Icon className="w-5 h-5" />
+                    <div key={activity.id} className={`flex items-start space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-lg ${
+                      index % 2 === 0 ? 'bg-gray-800/50' : 'bg-transparent'
+                    }`}>
+                      <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg ${getIconColor(activity.color)} flex items-center justify-center flex-shrink-0`}>
+                        <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white mb-1 hover:text-gray-300 transition-colors">{activity.title}</h3>
-                        <p className="text-gray-400 text-sm mb-2">{activity.description}</p>
+                        <h3 className="font-semibold text-white mb-1 text-sm lg:text-base">{activity.title}</h3>
+                        <p className="text-gray-400 text-xs lg:text-sm mb-2">{activity.description}</p>
                         <div className="flex items-center text-xs text-gray-500">
                           <Clock className="w-3 h-3 mr-1" />
                           {activity.time}
