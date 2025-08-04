@@ -299,14 +299,28 @@ const Dashboard = () => {
                 {recentActivity.map((activity, index) => {
                   const Icon = activity.icon;
                   return (
-                    <div key={activity.id} className={`flex items-start space-x-4 p-4 rounded-lg ${
-                      index % 2 === 0 ? 'bg-gray-800/50' : 'bg-transparent'
-                    }`}>
+                    <div 
+                      key={activity.id} 
+                      className={`flex items-start space-x-4 p-4 rounded-lg cursor-pointer hover:bg-gray-800/70 transition-colors ${
+                        index % 2 === 0 ? 'bg-gray-800/50' : 'bg-transparent'
+                      }`}
+                      onClick={() => {
+                        if (activity.type === 'diet_plan_created') {
+                          // Extract diet plan ID from activity.id (format: 'diet-{id}')
+                          const dietId = activity.id.replace('diet-', '');
+                          navigate(`/diet-plans/${dietId}`);
+                        } else if (activity.type === 'client_added') {
+                          // Extract client ID from activity.id (format: 'client-{id}')
+                          const clientId = activity.id.replace('client-', '');
+                          navigate(`/clients/${clientId}`);
+                        }
+                      }}
+                    >
                       <div className={`w-10 h-10 rounded-lg ${getIconColor(activity.color)} flex items-center justify-center flex-shrink-0`}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white mb-1">{activity.title}</h3>
+                        <h3 className="font-semibold text-white mb-1 hover:text-gray-300 transition-colors">{activity.title}</h3>
                         <p className="text-gray-400 text-sm mb-2">{activity.description}</p>
                         <div className="flex items-center text-xs text-gray-500">
                           <Clock className="w-3 h-3 mr-1" />
