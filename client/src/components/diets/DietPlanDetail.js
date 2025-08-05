@@ -86,7 +86,7 @@ const DietPlanDetail = () => {
       
       // Provide more specific error messages for export
       if (error.response) {
-        const { status, data } = error.response;
+        const { status } = error.response;
         
         if (status === 404) {
           toast.error('Diet plan not found. It may have been deleted.');

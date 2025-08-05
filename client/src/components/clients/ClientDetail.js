@@ -6,7 +6,6 @@ import {
   Trash2, 
   Plus, 
   User, 
-  Target, 
   FileText,
   Utensils
 } from 'lucide-react';

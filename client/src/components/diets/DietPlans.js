@@ -13,7 +13,7 @@ const DietPlans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { exporting, exportProgress, showExportModal, handleExportWithProgress } = useExportProgress();
+  const { exportProgress, showExportModal, handleExportWithProgress } = useExportProgress();
   
   // Get clientId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
