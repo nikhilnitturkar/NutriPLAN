@@ -432,6 +432,8 @@ router.delete('/:id', auth, async (req, res) => {
 // @desc    Export diet plan as PDF
 // @access  Private
 router.get('/:id/pdf', auth, async (req, res) => {
+  let browser = null;
+  
   try {
     const dietPlan = await DietPlan.findOne({ 
       _id: req.params.id, 
@@ -447,8 +449,8 @@ router.get('/:id/pdf', auth, async (req, res) => {
     const html = generateDietPlanHTML(dietPlan);
     
     try {
-      // Launch Puppeteer with Render-compatible settings
-      const browser = await puppeteer.launch({
+      // Launch Puppeteer with improved settings and timeout
+      browser = await puppeteer.launch({
         headless: true,
         args: [
           '--no-sandbox',
@@ -458,15 +460,30 @@ router.get('/:id/pdf', auth, async (req, res) => {
           '--no-first-run',
           '--no-zygote',
           '--single-process',
-          '--disable-extensions'
+          '--disable-extensions',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor'
         ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        timeout: 30000 // 30 second timeout
       });
       
       const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle0' });
       
-      // Generate PDF
+      // Set viewport and timeout
+      await page.setViewport({ width: 1200, height: 800 });
+      page.setDefaultTimeout(30000); // 30 second timeout
+      
+      // Set content with timeout
+      await page.setContent(html, { 
+        waitUntil: 'domcontentloaded',
+        timeout: 30000 
+      });
+      
+      // Wait a bit for any dynamic content
+      await page.waitForTimeout(2000);
+      
+      // Generate PDF with timeout
       const pdf = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -475,22 +492,57 @@ router.get('/:id/pdf', auth, async (req, res) => {
           right: '0.5in',
           bottom: '0.5in',
           left: '0.5in'
-        }
+        },
+        timeout: 30000
       });
-      
-      await browser.close();
       
       // Set response headers
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
+      res.setHeader('Content-Length', pdf.length);
       
       res.send(pdf);
+      
     } catch (puppeteerError) {
       console.error('Puppeteer error:', puppeteerError);
-      // Fallback to HTML export
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
-      res.send(html);
+      
+      // Try fallback with different settings
+      try {
+        if (browser) await browser.close();
+        
+        browser = await puppeteer.launch({
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage'
+          ],
+          timeout: 15000
+        });
+        
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'domcontentloaded' });
+        
+        const pdf = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
+        });
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
+        res.setHeader('Content-Length', pdf.length);
+        
+        res.send(pdf);
+        
+      } catch (fallbackError) {
+        console.error('Fallback PDF generation failed:', fallbackError);
+        
+        // Final fallback: return HTML
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
+        res.send(html);
+      }
     }
   } catch (error) {
     console.error('Error generating PDF:', error);
@@ -505,6 +557,49 @@ router.get('/:id/pdf', auth, async (req, res) => {
     }
     
     res.status(500).json({ message: 'Error generating PDF. Please try again later.' });
+  } finally {
+    // Always close browser
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('Error closing browser:', closeError);
+      }
+    }
+  }
+});
+
+// @route   GET /api/diets/:id/html
+// @desc    Export diet plan as HTML (fallback option)
+// @access  Private
+router.get('/:id/html', auth, async (req, res) => {
+  try {
+    const dietPlan = await DietPlan.findOne({ 
+      _id: req.params.id, 
+      trainerId: req.trainer._id 
+    })
+    .populate('clientId', 'personalInfo.name personalInfo.email fitnessData fitnessGoals medicalInfo');
+    
+    if (!dietPlan) {
+      return res.status(404).json({ message: 'Diet plan not found' });
+    }
+
+    // Generate HTML content
+    const html = generateDietPlanHTML(dietPlan);
+    
+    // Set response headers
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
+    
+    res.send(html);
+  } catch (error) {
+    console.error('Error generating HTML:', error);
+    
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Diet plan not found' });
+    }
+    
+    res.status(500).json({ message: 'Error generating HTML export. Please try again later.' });
   }
 });
 

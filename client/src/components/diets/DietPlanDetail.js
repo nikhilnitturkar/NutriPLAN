@@ -62,21 +62,55 @@ const DietPlanDetail = () => {
 
   const handleExport = async () => {
     const exportFunction = async () => {
-      const response = await api.get(`/api/diets/${id}/pdf`, {
-        responseType: 'blob'
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const clientName = client?.personalInfo?.name || 'client';
-      link.setAttribute('download', `diet-plan-${clientName}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('PDF exported successfully!');
+      // Try PDF export first with timeout
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+        
+        const response = await api.get(`/api/diets/${id}/pdf`, {
+          responseType: 'blob',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        const clientName = client?.personalInfo?.name || 'client';
+        link.setAttribute('download', `diet-plan-${clientName}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        toast.success('PDF exported successfully!');
+      } catch (pdfError) {
+        console.error('PDF export failed:', pdfError);
+        
+        // If PDF fails, try HTML export as fallback
+        if (pdfError.name === 'AbortError' || pdfError.code === 'ECONNABORTED') {
+          toast.error('PDF generation timed out. Trying HTML export...');
+          
+          const htmlResponse = await api.get(`/api/diets/${id}/html`, {
+            responseType: 'blob'
+          });
+          
+          const url = window.URL.createObjectURL(new Blob([htmlResponse.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          const clientName = client?.personalInfo?.name || 'client';
+          link.setAttribute('download', `diet-plan-${clientName}.html`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          
+          toast.success('HTML exported successfully! (PDF generation failed)');
+        } else {
+          throw pdfError; // Re-throw other errors
+        }
+      }
     };
 
     try {
@@ -95,13 +129,15 @@ const DietPlanDetail = () => {
         } else if (status === 403) {
           toast.error('You do not have permission to export this diet plan.');
         } else if (status === 500) {
-          toast.error('PDF generation failed. Please try again later.');
+          toast.error('Export generation failed. Please try again later.');
         } else {
-          toast.error('Failed to export PDF. Please try again.');
+          toast.error('Failed to export. Please try again.');
         }
       } else if (error.request) {
         // Network error
         toast.error('Network error. Please check your connection and try again.');
+      } else if (error.name === 'AbortError') {
+        toast.error('Export timed out. Please try again or contact support.');
       } else {
         // Other error
         toast.error('An unexpected error occurred while exporting. Please try again.');
