@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const DietPlan = require('../models/DietPlan');
 const Client = require('../models/Client');
 const puppeteer = require('puppeteer');
+const PDFDocument = require('pdfkit');
 
 const router = express.Router();
 
@@ -429,11 +430,9 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // @route   GET /api/diets/:id/pdf
-// @desc    Export diet plan as PDF
+// @desc    Export diet plan as PDF using PDFKit (faster and more reliable)
 // @access  Private
 router.get('/:id/pdf', auth, async (req, res) => {
-  let browser = null;
-  
   try {
     const dietPlan = await DietPlan.findOne({ 
       _id: req.params.id, 
@@ -445,109 +444,16 @@ router.get('/:id/pdf', auth, async (req, res) => {
       return res.status(404).json({ message: 'Diet plan not found' });
     }
 
-    // Generate HTML content for PDF
-    const html = generateDietPlanHTML(dietPlan);
+    // Generate PDF using PDFKit (much faster and more reliable)
+    const pdfBuffer = await generateDietPlanPDF(dietPlan);
     
-    try {
-      // Launch Puppeteer with Render-optimized settings
-      browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-extensions',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding'
-        ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        timeout: 45000 // 45 second timeout for Render
-      });
-      
-      const page = await browser.newPage();
-      
-      // Set viewport and timeout
-      await page.setViewport({ width: 1200, height: 800 });
-      page.setDefaultTimeout(45000); // 45 second timeout
-      
-      // Set content with timeout
-      await page.setContent(html, { 
-        waitUntil: 'domcontentloaded',
-        timeout: 45000 
-      });
-      
-      // Wait a bit for any dynamic content
-      await page.waitForTimeout(1000);
-      
-      // Generate PDF with timeout
-      const pdf = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '0.5in',
-          right: '0.5in',
-          bottom: '0.5in',
-          left: '0.5in'
-        },
-        timeout: 45000
-      });
-      
-      // Set response headers
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
-      res.setHeader('Content-Length', pdf.length);
-      
-      res.send(pdf);
-      
-          } catch (puppeteerError) {
-        console.error('Puppeteer error:', puppeteerError);
-        
-        // Try fallback with simpler settings
-        try {
-          if (browser) await browser.close();
-          
-          browser = await puppeteer.launch({
-            headless: true,
-            args: [
-              '--no-sandbox',
-              '--disable-setuid-sandbox',
-              '--disable-dev-shm-usage',
-              '--disable-gpu'
-            ],
-            timeout: 30000
-          });
-          
-          const page = await browser.newPage();
-          await page.setContent(html, { waitUntil: 'domcontentloaded' });
-          
-          const pdf = await page.pdf({
-            format: 'A4',
-            printBackground: true,
-            margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
-          });
-          
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
-          res.setHeader('Content-Length', pdf.length);
-          
-          res.send(pdf);
-          
-        } catch (fallbackError) {
-          console.error('Fallback PDF generation failed:', fallbackError);
-          
-          // Final fallback: return HTML
-          res.setHeader('Content-Type', 'text/html');
-          res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
-          res.send(html);
-        }
-      }
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    res.send(pdfBuffer);
+    
   } catch (error) {
     console.error('Error generating PDF:', error);
     
@@ -560,15 +466,25 @@ router.get('/:id/pdf', auth, async (req, res) => {
       return res.status(404).json({ message: 'Diet plan not found' });
     }
     
-    res.status(500).json({ message: 'Error generating PDF. Please try again later.' });
-  } finally {
-    // Always close browser
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error('Error closing browser:', closeError);
+    // Fallback to HTML if PDF generation fails
+    try {
+      const dietPlan = await DietPlan.findOne({ 
+        _id: req.params.id, 
+        trainerId: req.trainer._id 
+      })
+      .populate('clientId', 'personalInfo.name personalInfo.email fitnessData fitnessGoals medicalInfo');
+      
+      if (dietPlan) {
+        const html = generateDietPlanHTML(dietPlan);
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
+        res.send(html);
+      } else {
+        res.status(500).json({ message: 'Error generating PDF. Please try again later.' });
       }
+    } catch (fallbackError) {
+      console.error('HTML fallback also failed:', fallbackError);
+      res.status(500).json({ message: 'Error generating PDF. Please try again later.' });
     }
   }
 });
@@ -607,46 +523,120 @@ router.get('/:id/html', auth, async (req, res) => {
   }
 });
 
+// Helper function to generate PDF using PDFKit
+const generateDietPlanPDF = (dietPlan) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50
+      });
+      
+      const chunks = [];
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      
+      const client = dietPlan.clientId;
+      const clientName = client?.personalInfo?.name || 'Client';
+      
+      // Header
+      doc.fontSize(24).font('Helvetica-Bold').fillColor('#dc2626').text('Diet Plan', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(16).font('Helvetica').fillColor('#333').text(dietPlan.name, { align: 'center' });
+      doc.moveDown(2);
+      
+      // Client Information
+      doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Client Information');
+      doc.moveDown(0.5);
+      doc.fontSize(12).font('Helvetica').fillColor('#333').text(`Name: ${clientName}`);
+      doc.text(`Email: ${client?.personalInfo?.email || 'N/A'}`);
+      doc.text(`Phone: ${client?.personalInfo?.phone || 'N/A'}`);
+      doc.moveDown(2);
+      
+      // Plan Details
+      doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Plan Details');
+      doc.moveDown(0.5);
+      doc.fontSize(12).font('Helvetica').fillColor('#333');
+      doc.text(`Goal: ${dietPlan.goal || 'N/A'}`);
+      doc.text(`Daily Calories: ${dietPlan.dailyCalories || 'N/A'} cal`);
+      doc.text(`Duration: ${dietPlan.duration || 'N/A'} weeks`);
+      doc.moveDown(2);
+      
+      // Macronutrients
+      if (dietPlan.macros) {
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Macronutrients');
+        doc.moveDown(0.5);
+        doc.fontSize(12).font('Helvetica').fillColor('#333');
+        doc.text(`Protein: ${dietPlan.macros.protein || 'N/A'}g`);
+        doc.text(`Carbs: ${dietPlan.macros.carbs || 'N/A'}g`);
+        doc.text(`Fat: ${dietPlan.macros.fat || 'N/A'}g`);
+        doc.moveDown(2);
+      }
+      
+      // Meals
+      if (dietPlan.dailyMeals && dietPlan.dailyMeals.length > 0) {
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Daily Meals');
+        doc.moveDown(0.5);
+        
+        dietPlan.dailyMeals.forEach((meal, index) => {
+          if (meal && meal.name) {
+            doc.fontSize(12).font('Helvetica-Bold').fillColor('#dc2626').text(meal.mealType || `Meal ${index + 1}`);
+            doc.moveDown(0.5);
+            doc.fontSize(11).font('Helvetica').fillColor('#333');
+            doc.text(`Name: ${meal.name}`);
+            if (meal.description) doc.text(`Description: ${meal.description}`);
+            doc.text(`Calories: ${meal.calories || 'N/A'}`);
+            doc.text(`Protein: ${meal.protein || 'N/A'}g`);
+            doc.text(`Carbs: ${meal.carbs || 'N/A'}g`);
+            doc.text(`Fat: ${meal.fat || 'N/A'}g`);
+            if (meal.ingredients) doc.text(`Ingredients: ${meal.ingredients}`);
+            if (meal.instructions) doc.text(`Instructions: ${meal.instructions}`);
+            doc.moveDown(1);
+          }
+        });
+      } else {
+        doc.fontSize(12).font('Helvetica').fillColor('#6b7280').text('No meals added yet.');
+        doc.moveDown(1);
+      }
+      
+      // Footer
+      doc.moveDown(2);
+      doc.fontSize(10).font('Helvetica').fillColor('#6b7280').text(`Generated on: ${new Date().toLocaleDateString()}`, { align: 'center' });
+      
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 // Test PDF generation endpoint
 router.get('/test-pdf', auth, async (req, res) => {
   try {
-    const testHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Test PDF</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #dc2626; }
-        </style>
-      </head>
-      <body>
-        <h1>Test PDF Generation</h1>
-        <p>This is a test PDF to verify Puppeteer is working correctly.</p>
-        <p>Generated at: ${new Date().toISOString()}</p>
-      </body>
-      </html>
-    `;
+    const testDietPlan = {
+      name: 'Test Diet Plan',
+      goal: 'Weight Loss',
+      dailyCalories: 2000,
+      duration: 4,
+      macros: { protein: 150, carbs: 200, fat: 67 },
+      dailyMeals: [
+        {
+          mealType: 'Breakfast',
+          name: 'Oatmeal with Berries',
+          calories: 300,
+          protein: 12,
+          carbs: 45,
+          fat: 8
+        }
+      ],
+      clientId: { personalInfo: { name: 'Test Client', email: 'test@example.com' } }
+    };
     
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      timeout: 30000
-    });
-    
-    const page = await browser.newPage();
-    await page.setContent(testHtml);
-    
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true
-    });
-    
-    await browser.close();
+    const pdfBuffer = await generateDietPlanPDF(testDietPlan);
     
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="test.pdf"');
-    res.send(pdf);
+    res.setHeader('Content-Disposition', 'attachment; filename="test-diet-plan.pdf"');
+    res.send(pdfBuffer);
   } catch (error) {
     console.error('Test PDF error:', error);
     res.status(500).json({ message: 'Test PDF generation failed', error: error.message });

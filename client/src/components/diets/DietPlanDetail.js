@@ -65,12 +65,12 @@ const DietPlanDetail = () => {
       // Try PDF export first with timeout
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for Render
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for PDFKit
         
         const response = await api.get(`/api/diets/${id}/pdf`, {
           responseType: 'blob',
           signal: controller.signal,
-          timeout: 120000 // Also set axios timeout
+          timeout: 30000 // Also set axios timeout
         });
         
         clearTimeout(timeoutId);
