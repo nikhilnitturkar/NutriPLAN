@@ -449,7 +449,7 @@ router.get('/:id/pdf', auth, async (req, res) => {
     const html = generateDietPlanHTML(dietPlan);
     
     try {
-      // Launch Puppeteer with improved settings and timeout
+      // Launch Puppeteer with Render-optimized settings
       browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -462,26 +462,29 @@ router.get('/:id/pdf', auth, async (req, res) => {
           '--single-process',
           '--disable-extensions',
           '--disable-web-security',
-          '--disable-features=VizDisplayCompositor'
+          '--disable-features=VizDisplayCompositor',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding'
         ],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        timeout: 30000 // 30 second timeout
+        timeout: 45000 // 45 second timeout for Render
       });
       
       const page = await browser.newPage();
       
       // Set viewport and timeout
       await page.setViewport({ width: 1200, height: 800 });
-      page.setDefaultTimeout(30000); // 30 second timeout
+      page.setDefaultTimeout(45000); // 45 second timeout
       
       // Set content with timeout
       await page.setContent(html, { 
         waitUntil: 'domcontentloaded',
-        timeout: 30000 
+        timeout: 45000 
       });
       
       // Wait a bit for any dynamic content
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1000);
       
       // Generate PDF with timeout
       const pdf = await page.pdf({
@@ -493,7 +496,7 @@ router.get('/:id/pdf', auth, async (req, res) => {
           bottom: '0.5in',
           left: '0.5in'
         },
-        timeout: 30000
+        timeout: 45000
       });
       
       // Set response headers
@@ -503,47 +506,48 @@ router.get('/:id/pdf', auth, async (req, res) => {
       
       res.send(pdf);
       
-    } catch (puppeteerError) {
-      console.error('Puppeteer error:', puppeteerError);
-      
-      // Try fallback with different settings
-      try {
-        if (browser) await browser.close();
+          } catch (puppeteerError) {
+        console.error('Puppeteer error:', puppeteerError);
         
-        browser = await puppeteer.launch({
-          headless: true,
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
-          ],
-          timeout: 15000
-        });
-        
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: 'domcontentloaded' });
-        
-        const pdf = await page.pdf({
-          format: 'A4',
-          printBackground: true,
-          margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
-        });
-        
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
-        res.setHeader('Content-Length', pdf.length);
-        
-        res.send(pdf);
-        
-      } catch (fallbackError) {
-        console.error('Fallback PDF generation failed:', fallbackError);
-        
-        // Final fallback: return HTML
-        res.setHeader('Content-Type', 'text/html');
-        res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
-        res.send(html);
+        // Try fallback with simpler settings
+        try {
+          if (browser) await browser.close();
+          
+          browser = await puppeteer.launch({
+            headless: true,
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-gpu'
+            ],
+            timeout: 30000
+          });
+          
+          const page = await browser.newPage();
+          await page.setContent(html, { waitUntil: 'domcontentloaded' });
+          
+          const pdf = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
+          });
+          
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.pdf"`);
+          res.setHeader('Content-Length', pdf.length);
+          
+          res.send(pdf);
+          
+        } catch (fallbackError) {
+          console.error('Fallback PDF generation failed:', fallbackError);
+          
+          // Final fallback: return HTML
+          res.setHeader('Content-Type', 'text/html');
+          res.setHeader('Content-Disposition', `attachment; filename="diet-plan-${dietPlan.name.replace(/\s+/g, '-').toLowerCase()}.html"`);
+          res.send(html);
+        }
       }
-    }
   } catch (error) {
     console.error('Error generating PDF:', error);
     
@@ -600,6 +604,52 @@ router.get('/:id/html', auth, async (req, res) => {
     }
     
     res.status(500).json({ message: 'Error generating HTML export. Please try again later.' });
+  }
+});
+
+// Test PDF generation endpoint
+router.get('/test-pdf', auth, async (req, res) => {
+  try {
+    const testHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Test PDF</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #dc2626; }
+        </style>
+      </head>
+      <body>
+        <h1>Test PDF Generation</h1>
+        <p>This is a test PDF to verify Puppeteer is working correctly.</p>
+        <p>Generated at: ${new Date().toISOString()}</p>
+      </body>
+      </html>
+    `;
+    
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      timeout: 30000
+    });
+    
+    const page = await browser.newPage();
+    await page.setContent(testHtml);
+    
+    const pdf = await page.pdf({
+      format: 'A4',
+      printBackground: true
+    });
+    
+    await browser.close();
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="test.pdf"');
+    res.send(pdf);
+  } catch (error) {
+    console.error('Test PDF error:', error);
+    res.status(500).json({ message: 'Test PDF generation failed', error: error.message });
   }
 });
 
