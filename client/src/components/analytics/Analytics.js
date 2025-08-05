@@ -9,8 +9,7 @@ import {
   Star,
   Clock,
   ArrowUpRight,
-  PieChart,
-  LineChart
+  PieChart
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
@@ -54,22 +53,7 @@ const Analytics = () => {
       }).length;
       const monthlyGrowth = clients.length > 0 ? Math.round((clientsThisMonth / clients.length) * 100) : 0;
 
-      // Calculate Client Satisfaction based on actual data
-      const totalClients = clients.length;
-      const activeClients = clients.filter(client => client.status === 'active').length;
-      const clientsWithActivePlans = diets.filter(diet => diet.isActive && diet.clientId).length;
-      
-      // Calculate satisfaction metrics
-      const retentionRate = totalClients > 0 ? (activeClients / totalClients) * 100 : 0;
-      const planAdoptionRate = totalClients > 0 ? (clientsWithActivePlans / totalClients) * 100 : 0;
-      
-      // Overall satisfaction score (weighted average)
-      const satisfactionScore = Math.round((retentionRate * 0.6) + (planAdoptionRate * 0.4));
-      
-      // Calculate satisfaction breakdown
-      const verySatisfied = Math.round(satisfactionScore * 0.8); // 80% of satisfaction score
-      const satisfied = Math.round(satisfactionScore * 0.15); // 15% of satisfaction score
-      const neutral = Math.round(satisfactionScore * 0.05); // 5% of satisfaction score
+
 
       const goalStats = diets.reduce((acc, diet) => {
         acc[diet.goal] = (acc[diet.goal] || 0) + 1;
@@ -88,12 +72,7 @@ const Analytics = () => {
         successRate,
         monthlyGrowth,
         topGoals,
-        satisfactionScore,
-        satisfactionBreakdown: {
-          verySatisfied: Math.max(0, verySatisfied),
-          satisfied: Math.max(0, satisfied),
-          neutral: Math.max(0, neutral)
-        },
+
         recentActivity: [
           { type: 'client', message: 'New client registered', time: '2 hours ago', icon: Users },
           { type: 'plan', message: 'Diet plan created', time: '4 hours ago', icon: Target },
@@ -255,64 +234,16 @@ const Analytics = () => {
       </div>
 
       {/* Performance Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Monthly Growth */}
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-white">Monthly Growth</h3>
-            <TrendingUp className="w-6 h-6 text-gray-400" />
-          </div>
-          <div className="h-64 bg-gray-800 rounded-xl flex items-center justify-center">
-            <div className="text-center">
-              <LineChart className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-              <p className="text-gray-400">Growth tracking will be available soon</p>
-              <p className="text-sm text-gray-500 mt-2">Monthly client growth: {analytics.monthlyGrowth}%</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-8">
 
-        {/* Client Satisfaction */}
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-white">Client Satisfaction</h3>
-            <Award className="w-6 h-6 text-gray-400" />
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Very Satisfied</span>
-              <div className="flex items-center">
-                <div className="w-32 bg-gray-700 rounded-full h-2 mr-3">
-                  <div className="bg-green-500 h-2 rounded-full" style={{ width: `${analytics.satisfactionBreakdown?.verySatisfied || 0}%` }}></div>
-                </div>
-                <span className="text-sm font-semibold text-white">{analytics.satisfactionBreakdown?.verySatisfied || 0}%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Satisfied</span>
-              <div className="flex items-center">
-                <div className="w-32 bg-gray-700 rounded-full h-2 mr-3">
-                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${analytics.satisfactionBreakdown?.satisfied || 0}%` }}></div>
-                </div>
-                <span className="text-sm font-semibold text-white">{analytics.satisfactionBreakdown?.satisfied || 0}%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Neutral</span>
-              <div className="flex items-center">
-                <div className="w-32 bg-gray-700 rounded-full h-2 mr-3">
-                  <div className="bg-yellow-500 h-2 rounded-full" style={{ width: `${analytics.satisfactionBreakdown?.neutral || 0}%` }}></div>
-                </div>
-                <span className="text-sm font-semibold text-white">{analytics.satisfactionBreakdown?.neutral || 0}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
+
+
       </div>
 
       {/* Insights */}
       <div className="bg-gray-900 rounded-xl p-8 border border-gray-800">
         <h3 className="text-2xl font-semibold text-white mb-6">Key Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center mr-3">
@@ -333,15 +264,7 @@ const Analytics = () => {
             <p className="text-sm text-gray-400">Your diet plans are achieving a {analytics.successRate}% success rate among clients.</p>
           </div>
           
-          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                <Award className="w-5 h-5 text-white" />
-              </div>
-              <h4 className="font-semibold text-white">Client Satisfaction</h4>
-            </div>
-            <p className="text-sm text-gray-400">{analytics.satisfactionScore || 0}% of your clients are satisfied with their nutrition plans.</p>
-          </div>
+
         </div>
       </div>
     </div>

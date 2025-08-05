@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Download, Eye, Edit, Trash2, Users, Target, Sparkles, Activity, Info, TrendingUp, ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import ExportProgressModal from '../common/ExportProgressModal';
+import useExportProgress from '../../hooks/useExportProgress';
 
 const DietPlans = () => {
   const [dietPlans, setDietPlans] = useState([]);
@@ -11,6 +13,7 @@ const DietPlans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGoal, setFilterGoal] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { exporting, exportProgress, showExportModal, handleExportWithProgress } = useExportProgress();
   
   // Get clientId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
@@ -54,7 +57,7 @@ const DietPlans = () => {
   };
 
   const handleExport = async (plan) => {
-    try {
+    const exportFunction = async () => {
       const response = await api.get(`/api/diets/${plan._id}/pdf`, {
         responseType: 'blob'
       });
@@ -70,6 +73,10 @@ const DietPlans = () => {
       window.URL.revokeObjectURL(url);
       
       toast.success('PDF exported successfully!');
+    };
+
+    try {
+      await handleExportWithProgress(exportFunction);
     } catch (error) {
       toast.error('Failed to export PDF');
     }
@@ -103,9 +110,16 @@ const DietPlans = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <>
+      <ExportProgressModal 
+        show={showExportModal} 
+        progress={exportProgress}
+        title="Exporting PDF..."
+        message="Please wait while we generate your diet plan PDF."
+      />
+      <div className="space-y-8 sm:p-8 p-4">
       {/* Header */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 via-red-900 to-black p-8">
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 via-red-900 to-black sm:p-8 p-4">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between">
@@ -123,7 +137,7 @@ const DietPlans = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all group">
           <div className="flex items-center justify-between">
             <div>
@@ -183,7 +197,7 @@ const DietPlans = () => {
 
       {/* Filters */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -209,10 +223,11 @@ const DietPlans = () => {
             </select>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 md:px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               <Plus className="w-5 h-5" />
-              Create New Plan
+              <span className="hidden sm:inline">Create New Plan</span>
+              <span className="sm:hidden">Create Plan</span>
             </button>
             {selectedClientId && (
               <div className="mt-4 p-4 bg-red-900/20 border border-red-700/30 rounded-lg">
@@ -229,7 +244,7 @@ const DietPlans = () => {
       </div>
 
       {/* Diet Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {filteredPlans.map((plan) => (
           <div key={plan._id} className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 hover:border-gray-700 transition-all duration-300 group">
             <div className="p-6">
@@ -337,7 +352,8 @@ const DietPlans = () => {
           }}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -134,7 +134,6 @@ const ClientDetail = () => {
           <nav className="-mb-px flex space-x-8">
             {[
               { id: 'overview', label: 'Overview', icon: User },
-              { id: 'progress', label: 'Progress', icon: Target },
               { id: 'diets', label: 'Diet Plans', icon: Plus },
               { id: 'medical', label: 'Medical Info', icon: Trash2 }
             ].map((tab) => {
@@ -307,20 +306,7 @@ const ClientDetail = () => {
           </div>
         )}
 
-        {activeTab === 'progress' && (
-          <div className="space-y-6">
-            <div className="bg-gray-900/95 shadow-xl rounded-2xl border border-gray-800">
-              <div className="px-6 py-6">
-                <h3 className="text-lg leading-6 font-medium text-white mb-6">Progress Tracking</h3>
-                <div className="text-center py-8">
-                  <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-white mb-2">Progress tracking will be available soon</h3>
-                  <p className="text-sm text-gray-400">Track weight, measurements, and goal progress</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {activeTab === 'diets' && (
           <div className="space-y-6">

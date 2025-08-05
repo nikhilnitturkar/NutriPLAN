@@ -273,11 +273,12 @@ const AddDietPlan = () => {
                     <button
                       type="button"
                       onClick={() => setShowCalculator(!showCalculator)}
-                      className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center gap-2 transition-all disabled:opacity-50"
+                      className="px-3 md:px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 text-sm md:text-base"
                       disabled={!watchClientId}
                     >
                       <Calculator size={16} />
-                      Calculate
+                      <span className="hidden sm:inline">Calculate</span>
+                      <span className="sm:hidden">Calc</span>
                     </button>
                   </div>
                   {errors.dailyCalories && (
@@ -330,7 +331,7 @@ const AddDietPlan = () => {
                   <h2 className="text-xl font-semibold text-white">Macronutrients</h2>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                   <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
                     <label className="block text-sm font-medium text-gray-200 mb-2">Protein (g)</label>
                     <input
@@ -377,10 +378,11 @@ const AddDietPlan = () => {
                 <button
                   type="button"
                   onClick={addMeal}
-                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center gap-2 transition-all"
+                  className="px-3 md:px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all text-sm md:text-base"
                 >
                   <Plus size={16} />
-                  Add Meal
+                  <span className="hidden sm:inline">Add Meal</span>
+                  <span className="sm:hidden">Add</span>
                 </button>
               </div>
 
@@ -484,14 +486,15 @@ const AddDietPlan = () => {
                       placeholder="Cooking instructions..."
                     />
                   </div>
-                  <div className="flex gap-2 mt-6">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-6">
                     <button
                       type="button"
                       onClick={saveMeal}
-                      className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-xl flex items-center gap-2 transition-all"
+                      className="px-3 md:px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all text-sm md:text-base"
                     >
                       <Save size={16} />
-                      Save Meal
+                      <span className="hidden sm:inline">Save Meal</span>
+                      <span className="sm:hidden">Save</span>
                     </button>
                     <button
                       type="button"
@@ -499,7 +502,7 @@ const AddDietPlan = () => {
                         setShowMealForm(false);
                         setCurrentMeal({});
                       }}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                      className="px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors text-sm md:text-base"
                     >
                       Cancel
                     </button>
@@ -521,7 +524,7 @@ const AddDietPlan = () => {
                         <Trash2 size={16} />
                       </button>
                     </div>
-                    <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-sm">
                       <div>
                         <span className="text-gray-400">Calories:</span>
                         <span className="text-white ml-1">{meal.calories}</span>
@@ -586,28 +589,30 @@ const AddDietPlan = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end space-x-4 pt-6">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6">
               <button
                 type="button"
                 onClick={() => navigate('/diet-plans')}
-                className="px-6 py-3 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-800 transition-colors"
+                className="px-4 md:px-6 py-3 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-800 transition-colors text-sm md:text-base"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-4 md:px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
               >
                 {loading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating Plan...
+                    <span className="hidden sm:inline">Creating Plan...</span>
+                    <span className="sm:hidden">Creating...</span>
                   </div>
                 ) : (
                   <div className="flex items-center">
                     <Save className="w-4 h-4 mr-2" />
-                    Create Diet Plan
+                    <span className="hidden sm:inline">Create Diet Plan</span>
+                    <span className="sm:hidden">Create Plan</span>
                   </div>
                 )}
               </button>

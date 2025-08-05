@@ -91,6 +91,7 @@ const Layout = ({ children }) => {
                   <Link
                     key={item.name}
                     to={item.href}
+                    onClick={() => setSidebarOpen(false)}
                     className={`group flex items-center px-4 py-4 text-sm font-medium rounded-lg transition-all duration-300 ${
                       isActive(item.href)
                         ? 'bg-gray-800 text-white border-l-4 border-red-500'

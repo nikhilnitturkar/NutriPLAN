@@ -7,6 +7,193 @@ const puppeteer = require('puppeteer');
 
 const router = express.Router();
 
+// Helper function to generate HTML for PDF export
+const generateDietPlanHTML = (dietPlan) => {
+  const client = dietPlan.clientId;
+  const clientName = client?.personalInfo?.name || 'Client';
+  
+  const formatMacros = (macros) => {
+    if (!macros) return '';
+    return `
+      <div style="margin: 20px 0;">
+        <h3 style="color: #dc2626; margin-bottom: 10px;">Macronutrients</h3>
+        <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+          <div style="flex: 1; background: #f3f4f6; padding: 15px; border-radius: 8px;">
+            <strong>Protein:</strong> ${macros.protein}g
+          </div>
+          <div style="flex: 1; background: #f3f4f6; padding: 15px; border-radius: 8px;">
+            <strong>Carbs:</strong> ${macros.carbs}g
+          </div>
+          <div style="flex: 1; background: #f3f4f6; padding: 15px; border-radius: 8px;">
+            <strong>Fat:</strong> ${macros.fat}g
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  const formatMeals = (meals) => {
+    if (!meals || meals.length === 0) return '<p style="color: #6b7280; font-style: italic;">No meals added yet.</p>';
+    
+    return meals.map((meal, index) => `
+      <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
+        <h4 style="color: #dc2626; margin-bottom: 10px;">${meal.mealType}</h4>
+        <h5 style="font-weight: bold; margin-bottom: 5px;">${meal.name}</h5>
+        ${meal.description ? `<p style="color: #6b7280; margin-bottom: 10px;">${meal.description}</p>` : ''}
+        <div style="display: flex; gap: 15px; margin-bottom: 10px; font-size: 14px;">
+          <span><strong>Calories:</strong> ${meal.calories}</span>
+          <span><strong>Protein:</strong> ${meal.protein}g</span>
+          <span><strong>Carbs:</strong> ${meal.carbs}g</span>
+          <span><strong>Fat:</strong> ${meal.fat}g</span>
+        </div>
+        ${meal.ingredients ? `<p style="margin-bottom: 5px;"><strong>Ingredients:</strong> ${meal.ingredients}</p>` : ''}
+        ${meal.instructions ? `<p><strong>Instructions:</strong> ${meal.instructions}</p>` : ''}
+      </div>
+    `).join('');
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Diet Plan - ${dietPlan.name}</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 3px solid #dc2626;
+          padding-bottom: 20px;
+          margin-bottom: 30px;
+        }
+        .header h1 {
+          color: #dc2626;
+          margin-bottom: 10px;
+        }
+        .client-info {
+          background: #f9fafb;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        }
+        .plan-details {
+          margin-bottom: 30px;
+        }
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          padding: 8px 0;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-label {
+          font-weight: bold;
+          color: #374151;
+        }
+        .detail-value {
+          color: #6b7280;
+        }
+        .section {
+          margin-bottom: 30px;
+        }
+        .section h3 {
+          color: #dc2626;
+          border-bottom: 2px solid #dc2626;
+          padding-bottom: 5px;
+          margin-bottom: 15px;
+        }
+        .footer {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+          text-align: center;
+          color: #6b7280;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>${dietPlan.name}</h1>
+        <p>Personalized Nutrition Plan</p>
+      </div>
+
+      <div class="client-info">
+        <h3 style="color: #dc2626; margin-bottom: 10px;">Client Information</h3>
+        <div class="detail-row">
+          <span class="detail-label">Name:</span>
+          <span class="detail-value">${clientName}</span>
+        </div>
+        ${client?.personalInfo?.email ? `
+        <div class="detail-row">
+          <span class="detail-label">Email:</span>
+          <span class="detail-value">${client.personalInfo.email}</span>
+        </div>
+        ` : ''}
+      </div>
+
+      <div class="plan-details">
+        <h3 style="color: #dc2626; margin-bottom: 15px;">Plan Details</h3>
+        <div class="detail-row">
+          <span class="detail-label">Goal:</span>
+          <span class="detail-value">${dietPlan.goal}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Daily Calories:</span>
+          <span class="detail-value">${dietPlan.dailyCalories.toLocaleString()}</span>
+        </div>
+        ${dietPlan.description ? `
+        <div class="detail-row">
+          <span class="detail-label">Description:</span>
+          <span class="detail-value">${dietPlan.description}</span>
+        </div>
+        ` : ''}
+      </div>
+
+      ${formatMacros(dietPlan.macronutrients)}
+
+      <div class="section">
+        <h3>Daily Meals</h3>
+        ${formatMeals(dietPlan.dailyMeals)}
+      </div>
+
+      ${dietPlan.restrictions ? `
+      <div class="section">
+        <h3>Dietary Restrictions</h3>
+        <p>${dietPlan.restrictions}</p>
+      </div>
+      ` : ''}
+
+      ${dietPlan.supplements ? `
+      <div class="section">
+        <h3>Supplements</h3>
+        <p>${dietPlan.supplements}</p>
+      </div>
+      ` : ''}
+
+      ${dietPlan.hydration ? `
+      <div class="section">
+        <h3>Hydration Guidelines</h3>
+        <p>${dietPlan.hydration}</p>
+      </div>
+      ` : ''}
+
+      <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+        <p>This plan is personalized for ${clientName} and should be followed under professional guidance.</p>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 // @route   GET /api/diets
 // @desc    Get all diet plans for the authenticated trainer
 // @access  Private
@@ -74,11 +261,39 @@ router.get('/:id', auth, async (req, res) => {
     
     res.json(dietPlan);
   } catch (error) {
-    console.error(error);
+    console.error('Error updating diet plan:', error);
+    
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Diet plan not found' });
     }
-    res.status(500).json({ message: 'Server error' });
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => {
+        // Provide more user-friendly error messages
+        const field = err.path;
+        if (field.includes('dailyMeals')) {
+          const mealIndex = field.match(/dailyMeals\.(\d+)\./)?.[1];
+          const fieldName = field.split('.').pop();
+          if (fieldName === 'name') {
+            return `Meal ${parseInt(mealIndex) + 1} name is required`;
+          }
+          return `Meal ${parseInt(mealIndex) + 1} ${fieldName} is required`;
+        }
+        return err.message;
+      });
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: validationErrors.map(msg => ({ msg }))
+      });
+    }
+    
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'A diet plan with this name already exists' });
+    }
+    
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 });
 
@@ -159,6 +374,13 @@ router.put('/:id', [
     const updateData = { ...req.body };
     if (updateData.dailyCalories) {
       updateData.dailyCalories = Number(updateData.dailyCalories);
+    }
+
+    // Clean up dailyMeals - remove meals with empty names
+    if (updateData.dailyMeals && Array.isArray(updateData.dailyMeals)) {
+      updateData.dailyMeals = updateData.dailyMeals.filter(meal => 
+        meal && meal.name && meal.name.trim() !== ''
+      );
     }
 
     const dietPlan = await DietPlan.findOneAndUpdate(
@@ -272,7 +494,17 @@ router.get('/:id/pdf', auth, async (req, res) => {
     }
   } catch (error) {
     console.error('Error generating PDF:', error);
-    res.status(500).json({ message: 'Error generating PDF' });
+    
+    // Provide more specific error messages
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Invalid diet plan data' });
+    }
+    
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Diet plan not found' });
+    }
+    
+    res.status(500).json({ message: 'Error generating PDF. Please try again later.' });
   }
 });
 

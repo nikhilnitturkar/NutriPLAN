@@ -104,3 +104,5 @@ Thumbs.db
 # HTML test files (if any remain)
 test-*.html
 sample-*.html 
+# Local Netlify folder
+.netlify

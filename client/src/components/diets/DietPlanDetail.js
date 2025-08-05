@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Edit, Trash2, User, Target, Clock, Droplets, Pill, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import ExportProgressModal from '../common/ExportProgressModal';
+import useExportProgress from '../../hooks/useExportProgress';
 
 const DietPlanDetail = () => {
   const { id } = useParams();
@@ -10,7 +12,7 @@ const DietPlanDetail = () => {
   const [dietPlan, setDietPlan] = useState(null);
   const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [exporting, setExporting] = useState(false);
+  const { exporting, exportProgress, showExportModal, handleExportWithProgress } = useExportProgress();
 
   const fetchDietPlan = useCallback(async () => {
     try {
@@ -59,8 +61,7 @@ const DietPlanDetail = () => {
   };
 
   const handleExport = async () => {
-    setExporting(true);
-    try {
+    const exportFunction = async () => {
       const response = await api.get(`/api/diets/${id}/pdf`, {
         responseType: 'blob'
       });
@@ -76,10 +77,35 @@ const DietPlanDetail = () => {
       window.URL.revokeObjectURL(url);
       
       toast.success('PDF exported successfully!');
+    };
+
+    try {
+      await handleExportWithProgress(exportFunction);
     } catch (error) {
-      toast.error('Failed to export PDF');
-    } finally {
-      setExporting(false);
+      console.error('Export error:', error);
+      
+      // Provide more specific error messages for export
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        if (status === 404) {
+          toast.error('Diet plan not found. It may have been deleted.');
+        } else if (status === 401) {
+          toast.error('Session expired. Please log in again.');
+        } else if (status === 403) {
+          toast.error('You do not have permission to export this diet plan.');
+        } else if (status === 500) {
+          toast.error('PDF generation failed. Please try again later.');
+        } else {
+          toast.error('Failed to export PDF. Please try again.');
+        }
+      } else if (error.request) {
+        // Network error
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        // Other error
+        toast.error('An unexpected error occurred while exporting. Please try again.');
+      }
     }
   };
 
@@ -113,8 +139,17 @@ const DietPlanDetail = () => {
     }
   };
 
+
+
   return (
-    <div className="p-6 max-w-6xl mx-auto bg-black min-h-screen">
+    <>
+      <ExportProgressModal 
+        show={showExportModal} 
+        progress={exportProgress}
+        title="Exporting PDF..."
+        message="Please wait while we generate your diet plan PDF."
+      />
+      <div className="p-6 max-w-6xl mx-auto bg-black min-h-screen">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
@@ -131,28 +166,31 @@ const DietPlanDetail = () => {
             </div>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl text-sm md:text-base"
             >
-              <Download className="w-5 h-5" />
-              {exporting ? 'Exporting...' : 'Export PDF'}
+              <Download className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline">{exporting ? 'Exporting...' : 'Export PDF'}</span>
+              <span className="sm:hidden">{exporting ? 'Exporting...' : 'Export'}</span>
             </button>
             <Link
               to={`/diet-plans/edit/${id}`}
-              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl text-sm md:text-base"
             >
-              <Edit className="w-5 h-5" />
-              Edit Plan
+              <Edit className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline">Edit Plan</span>
+              <span className="sm:hidden">Edit</span>
             </Link>
             <button
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl text-sm md:text-base"
             >
-              <Trash2 className="w-5 h-5" />
-              Delete
+              <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline">Delete</span>
+              <span className="sm:hidden">Delete</span>
             </button>
           </div>
         </div>
@@ -462,7 +500,8 @@ const DietPlanDetail = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

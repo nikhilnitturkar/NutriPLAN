@@ -165,8 +165,28 @@ const EditDietPlan = () => {
   };
 
   const saveMeal = () => {
+    // Validate meal has required fields
+    if (!currentMeal.mealType || currentMeal.mealType === '') {
+      toast.error('Please select a meal type');
+      return;
+    }
+    
+    if (!currentMeal.name || currentMeal.name.trim() === '') {
+      toast.error('Meal name is required');
+      return;
+    }
+
+    // Convert numeric values to numbers
+    const cleanedMeal = {
+      ...currentMeal,
+      calories: Number(currentMeal.calories) || 0,
+      protein: Number(currentMeal.protein) || 0,
+      carbs: Number(currentMeal.carbs) || 0,
+      fat: Number(currentMeal.fat) || 0
+    };
+
     const meals = watch('dailyMeals') || [];
-    meals.push(currentMeal);
+    meals.push(cleanedMeal);
     setValue('dailyMeals', meals);
     setShowMealForm(false);
     setCurrentMeal({});
@@ -188,12 +208,43 @@ const EditDietPlan = () => {
         data.macronutrients = calculateMacros(data.dailyCalories, data.goal);
       }
 
+      // Clean up dailyMeals - remove meals with empty names
+      if (data.dailyMeals && Array.isArray(data.dailyMeals)) {
+        data.dailyMeals = data.dailyMeals.filter(meal => 
+          meal && meal.name && meal.name.trim() !== ''
+        );
+      }
+
       await api.put(`/api/diets/${id}`, data);
       toast.success('Diet plan updated successfully!');
       navigate(`/diets/${id}`);
     } catch (error) {
       console.error('Error updating diet plan:', error);
-      toast.error('Failed to update diet plan');
+      
+      // Provide more specific error messages
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        if (status === 400 && data.errors) {
+          // Validation errors
+          const errorMessages = data.errors.map(err => err.msg).join(', ');
+          toast.error(`Validation error: ${errorMessages}`);
+        } else if (status === 404) {
+          toast.error('Diet plan not found. It may have been deleted.');
+        } else if (status === 401) {
+          toast.error('Session expired. Please log in again.');
+        } else if (status === 403) {
+          toast.error('You do not have permission to update this diet plan.');
+        } else {
+          toast.error(data.message || 'Failed to update diet plan');
+        }
+      } else if (error.request) {
+        // Network error
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        // Other error
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setSaving(false);
     }
@@ -340,11 +391,12 @@ const EditDietPlan = () => {
                     <button
                       type="button"
                       onClick={() => setShowCalculator(!showCalculator)}
-                      className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center gap-2 transition-all disabled:opacity-50"
+                      className="px-3 md:px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 text-sm md:text-base"
                       disabled={!watchClientId}
                     >
                       <Calculator size={16} />
-                      Calculate
+                      <span className="hidden sm:inline">Calculate</span>
+                      <span className="sm:hidden">Calc</span>
                     </button>
                   </div>
                   {errors.dailyCalories && (
@@ -397,7 +449,7 @@ const EditDietPlan = () => {
                   <h2 className="text-xl font-semibold text-white">Macronutrients</h2>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                   <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
                     <label className="block text-sm font-medium text-gray-200 mb-2">Protein (g)</label>
                     <input
@@ -444,10 +496,11 @@ const EditDietPlan = () => {
                 <button
                   type="button"
                   onClick={addMeal}
-                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center gap-2 transition-all"
+                  className="px-3 md:px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all text-sm md:text-base"
                 >
                   <Plus size={16} />
-                  Add Meal
+                  <span className="hidden sm:inline">Add Meal</span>
+                  <span className="sm:hidden">Add</span>
                 </button>
               </div>
 
@@ -457,11 +510,14 @@ const EditDietPlan = () => {
                   <h3 className="text-lg font-semibold text-white mb-4">Add New Meal</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-2">Meal Type</label>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">
+                        Meal Type <span className="text-red-400">*</span>
+                      </label>
                       <select
                         value={currentMeal.mealType || ''}
                         onChange={(e) => setCurrentMeal({...currentMeal, mealType: e.target.value})}
                         className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                        required
                       >
                         <option value="">Select meal type</option>
                         {mealTypes.map(type => (
@@ -470,13 +526,16 @@ const EditDietPlan = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-2">Meal Name</label>
+                      <label className="block text-sm font-medium text-gray-200 mb-2">
+                        Meal Name <span className="text-red-400">*</span>
+                      </label>
                       <input
                         type="text"
                         value={currentMeal.name || ''}
                         onChange={(e) => setCurrentMeal({...currentMeal, name: e.target.value})}
                         className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                         placeholder="e.g., Grilled Chicken Salad"
+                        required
                       />
                     </div>
                     <div>
@@ -550,14 +609,15 @@ const EditDietPlan = () => {
                       placeholder="Cooking instructions..."
                     />
                   </div>
-                  <div className="flex gap-2 mt-6">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-6">
                     <button
                       type="button"
                       onClick={saveMeal}
-                      className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-xl flex items-center gap-2 transition-all"
+                      className="px-3 md:px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all text-sm md:text-base"
                     >
                       <Save size={16} />
-                      Save Meal
+                      <span className="hidden sm:inline">Save Meal</span>
+                      <span className="sm:hidden">Save</span>
                     </button>
                     <button
                       type="button"
@@ -565,7 +625,7 @@ const EditDietPlan = () => {
                         setShowMealForm(false);
                         setCurrentMeal({});
                       }}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                      className="px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors text-sm md:text-base"
                     >
                       Cancel
                     </button>
@@ -587,7 +647,7 @@ const EditDietPlan = () => {
                         <Trash2 size={16} />
                       </button>
                     </div>
-                    <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-sm">
                       <div>
                         <span className="text-gray-400">Calories:</span>
                         <span className="text-white ml-1">{meal.calories}</span>
@@ -652,28 +712,30 @@ const EditDietPlan = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end space-x-4 pt-6">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6">
               <button
                 type="button"
                 onClick={() => navigate(`/diet-plans/${id}`)}
-                className="px-6 py-3 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-800 transition-colors"
+                className="px-4 md:px-6 py-3 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-800 transition-colors text-sm md:text-base"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-4 md:px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
               >
                 {saving ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Updating Plan...
+                    <span className="hidden sm:inline">Updating Plan...</span>
+                    <span className="sm:hidden">Updating...</span>
                   </div>
                 ) : (
                   <div className="flex items-center">
                     <Save className="w-4 h-4 mr-2" />
-                    Update Diet Plan
+                    <span className="hidden sm:inline">Update Diet Plan</span>
+                    <span className="sm:hidden">Update Plan</span>
                   </div>
                 )}
               </button>
