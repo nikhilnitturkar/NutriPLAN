@@ -529,7 +529,7 @@ const generateDietPlanPDF = (dietPlan) => {
     try {
       const doc = new PDFDocument({
         size: 'A4',
-        margin: 50
+        margin: 40
       });
       
       const chunks = [];
@@ -539,59 +539,106 @@ const generateDietPlanPDF = (dietPlan) => {
       const client = dietPlan.clientId;
       const clientName = client?.personalInfo?.name || 'Client';
       
-      // Header
-      doc.fontSize(24).font('Helvetica-Bold').fillColor('#dc2626').text('Diet Plan', { align: 'center' });
-      doc.moveDown();
-      doc.fontSize(16).font('Helvetica').fillColor('#333').text(dietPlan.name, { align: 'center' });
+      // Header with red accent line
+      doc.fontSize(28).font('Helvetica-Bold').fillColor('#dc2626').text('Diet Plan', { align: 'center' });
+      doc.moveDown(0.5);
+      
+      // Red accent line
+      doc.rect(40, doc.y, 515, 3).fill('#dc2626');
+      doc.moveDown(1);
+      
+      // Plan name
+      doc.fontSize(20).font('Helvetica-Bold').fillColor('#333').text(dietPlan.name, { align: 'center' });
       doc.moveDown(2);
       
-      // Client Information
-      doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Client Information');
+      // Client Information Section
+      doc.fontSize(16).font('Helvetica-Bold').fillColor('#374151').text('Client Information');
       doc.moveDown(0.5);
-      doc.fontSize(12).font('Helvetica').fillColor('#333').text(`Name: ${clientName}`);
-      doc.text(`Email: ${client?.personalInfo?.email || 'N/A'}`);
-      doc.text(`Phone: ${client?.personalInfo?.phone || 'N/A'}`);
-      doc.moveDown(2);
       
-      // Plan Details
-      doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Plan Details');
-      doc.moveDown(0.5);
+      // Client info box
+      const clientBoxY = doc.y;
+      doc.rect(40, clientBoxY, 515, 60).fill('#f9fafb');
       doc.fontSize(12).font('Helvetica').fillColor('#333');
-      doc.text(`Goal: ${dietPlan.goal || 'N/A'}`);
-      doc.text(`Daily Calories: ${dietPlan.dailyCalories || 'N/A'} cal`);
-      doc.text(`Duration: ${dietPlan.duration || 'N/A'} weeks`);
-      doc.moveDown(2);
+      doc.text(`Name: ${clientName}`, 50, clientBoxY + 10);
+      doc.text(`Email: ${client?.personalInfo?.email || 'N/A'}`, 50, clientBoxY + 25);
+      doc.text(`Phone: ${client?.personalInfo?.phone || 'N/A'}`, 50, clientBoxY + 40);
+      doc.moveDown(3);
       
-      // Macronutrients
+      // Plan Details Section
+      doc.fontSize(16).font('Helvetica-Bold').fillColor('#374151').text('Plan Details');
+      doc.moveDown(0.5);
+      
+      // Plan details box
+      const planBoxY = doc.y;
+      doc.rect(40, planBoxY, 515, 80).fill('#f9fafb');
+      doc.fontSize(12).font('Helvetica').fillColor('#333');
+      doc.text(`Goal: ${dietPlan.goal || 'N/A'}`, 50, planBoxY + 10);
+      doc.text(`Daily Calories: ${dietPlan.dailyCalories || 'N/A'} cal`, 50, planBoxY + 25);
+      doc.text(`Duration: ${dietPlan.duration || 'N/A'} weeks`, 50, planBoxY + 40);
+      doc.text(`Created: ${new Date(dietPlan.createdAt).toLocaleDateString()}`, 50, planBoxY + 55);
+      doc.moveDown(4);
+      
+      // Macronutrients Section
       if (dietPlan.macros) {
-        doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Macronutrients');
+        doc.fontSize(16).font('Helvetica-Bold').fillColor('#374151').text('Macronutrients');
         doc.moveDown(0.5);
-        doc.fontSize(12).font('Helvetica').fillColor('#333');
-        doc.text(`Protein: ${dietPlan.macros.protein || 'N/A'}g`);
-        doc.text(`Carbs: ${dietPlan.macros.carbs || 'N/A'}g`);
-        doc.text(`Fat: ${dietPlan.macros.fat || 'N/A'}g`);
-        doc.moveDown(2);
+        
+        // Macros grid
+        const macrosY = doc.y;
+        const boxWidth = 165;
+        const boxHeight = 50;
+        
+        // Protein box
+        doc.rect(40, macrosY, boxWidth, boxHeight).fill('#f3f4f6');
+        doc.fontSize(12).font('Helvetica-Bold').fillColor('#dc2626').text('Protein', 50, macrosY + 10);
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#333').text(`${dietPlan.macros.protein || 'N/A'}g`, 50, macrosY + 25);
+        
+        // Carbs box
+        doc.rect(215, macrosY, boxWidth, boxHeight).fill('#f3f4f6');
+        doc.fontSize(12).font('Helvetica-Bold').fillColor('#dc2626').text('Carbs', 225, macrosY + 10);
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#333').text(`${dietPlan.macros.carbs || 'N/A'}g`, 225, macrosY + 25);
+        
+        // Fat box
+        doc.rect(390, macrosY, boxWidth, boxHeight).fill('#f3f4f6');
+        doc.fontSize(12).font('Helvetica-Bold').fillColor('#dc2626').text('Fat', 400, macrosY + 10);
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#333').text(`${dietPlan.macros.fat || 'N/A'}g`, 400, macrosY + 25);
+        
+        doc.moveDown(4);
       }
       
-      // Meals
+      // Meals Section
       if (dietPlan.dailyMeals && dietPlan.dailyMeals.length > 0) {
-        doc.fontSize(14).font('Helvetica-Bold').fillColor('#374151').text('Daily Meals');
+        doc.fontSize(16).font('Helvetica-Bold').fillColor('#374151').text('Daily Meals');
         doc.moveDown(0.5);
         
         dietPlan.dailyMeals.forEach((meal, index) => {
           if (meal && meal.name) {
-            doc.fontSize(12).font('Helvetica-Bold').fillColor('#dc2626').text(meal.mealType || `Meal ${index + 1}`);
-            doc.moveDown(0.5);
-            doc.fontSize(11).font('Helvetica').fillColor('#333');
-            doc.text(`Name: ${meal.name}`);
-            if (meal.description) doc.text(`Description: ${meal.description}`);
-            doc.text(`Calories: ${meal.calories || 'N/A'}`);
-            doc.text(`Protein: ${meal.protein || 'N/A'}g`);
-            doc.text(`Carbs: ${meal.carbs || 'N/A'}g`);
-            doc.text(`Fat: ${meal.fat || 'N/A'}g`);
-            if (meal.ingredients) doc.text(`Ingredients: ${meal.ingredients}`);
-            if (meal.instructions) doc.text(`Instructions: ${meal.instructions}`);
-            doc.moveDown(1);
+            // Meal box
+            const mealBoxY = doc.y;
+            doc.rect(40, mealBoxY, 515, 120).fill('#ffffff');
+            doc.rect(40, mealBoxY, 515, 120).stroke('#e5e7eb');
+            
+            // Meal type header
+            doc.fontSize(14).font('Helvetica-Bold').fillColor('#dc2626').text(meal.mealType || `Meal ${index + 1}`, 50, mealBoxY + 10);
+            
+            // Meal name
+            doc.fontSize(12).font('Helvetica-Bold').fillColor('#333').text(meal.name, 50, mealBoxY + 30);
+            
+            // Meal details
+            doc.fontSize(10).font('Helvetica').fillColor('#6b7280');
+            if (meal.description) doc.text(`Description: ${meal.description}`, 50, mealBoxY + 45);
+            
+            // Nutrition info
+            doc.fontSize(10).font('Helvetica').fillColor('#333');
+            doc.text(`Calories: ${meal.calories || 'N/A'}`, 50, mealBoxY + 60);
+            doc.text(`Protein: ${meal.protein || 'N/A'}g`, 200, mealBoxY + 60);
+            doc.text(`Carbs: ${meal.carbs || 'N/A'}g`, 350, mealBoxY + 60);
+            doc.text(`Fat: ${meal.fat || 'N/A'}g`, 450, mealBoxY + 60);
+            
+            if (meal.ingredients) doc.text(`Ingredients: ${meal.ingredients}`, 50, mealBoxY + 75);
+            if (meal.instructions) doc.text(`Instructions: ${meal.instructions}`, 50, mealBoxY + 90);
+            
+            doc.moveDown(6);
           }
         });
       } else {
