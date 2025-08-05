@@ -149,13 +149,37 @@ const AddDietPlan = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      await api.post('/api/diets', data);
+      // Ensure dailyCalories is a number
+      const formData = {
+        ...data,
+        dailyCalories: Number(data.dailyCalories)
+      };
+      
+      await api.post('/api/diets', formData);
       toast.success('Diet plan created successfully!');
       navigate('/diet-plans');
     } catch (error) {
       console.error('Error creating diet plan:', error);
-      const message = error.response?.data?.message || 'Failed to create diet plan';
-      toast.error(message);
+      
+      // Handle different types of errors
+      if (error.response?.status === 401) {
+        toast.error('Please log in to create a diet plan');
+        navigate('/login');
+      } else if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach(err => {
+            toast.error(err.msg || 'Validation error');
+          });
+        } else {
+          toast.error(errorData.message || 'Validation failed');
+        }
+      } else if (error.response?.status === 404) {
+        toast.error('Client not found. Please select a valid client.');
+      } else {
+        const message = error.response?.data?.message || 'Failed to create diet plan';
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }

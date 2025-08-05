@@ -345,7 +345,27 @@ router.post('/', [
     res.status(201).json(populatedDietPlan);
   } catch (error) {
     console.error('Error creating diet plan:', error);
-    res.status(500).json({ message: 'Server error' });
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: validationErrors.map(msg => ({ msg }))
+      });
+    }
+    
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'A diet plan with this name already exists' });
+    }
+    
+    // Handle ObjectId errors
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid client ID format' });
+    }
+    
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 });
 
